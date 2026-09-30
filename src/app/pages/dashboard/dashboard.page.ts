@@ -1,5 +1,5 @@
 
-import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -33,6 +33,7 @@ import { FIREBASE_AUTH } from '../../core/firebase.tokens';
 import { FirestoreDataService } from '../../services/firestore-data.service';
 import {
   categoriesForPeriod,
+  categoryKey,
   categoryPeriod,
   copyCategoriesToPeriod,
   currentPeriodKey,
@@ -42,11 +43,11 @@ import {
   effectiveLimit,
   expenseTimestampForPeriod,
   expensesInPeriod,
-  leftoverFromPrevious,
   formatDueLabel,
   goalProgressPercent,
   incomesForPeriod,
   lastWeekdayOnOrBefore,
+  leftoverFromPrevious,
   periodLabel,
   periodSpent,
   recurringSummary,
@@ -110,18 +111,73 @@ export class DashboardPage implements OnInit, OnDestroy {
   private readonly dataSubs = new Subscription();
 
 
+  /*   REACTIVE STATE
+
+   * This app runs zoneless (`angular.json` ships no `zone.js`), and Firestore
+   * delivers `onSnapshot` callbacks outside Angular's scheduler. Plain fields
+   * assigned from those callbacks never re-rendered — the UI only refreshed
+   * when some unrelated event (a click, an ngModel write) happened to run
+   * change detection. That is why categories appeared to vanish on load and
+   * "come back" on tap.
+   *
+   * Every piece of async-backed state is therefore a signal. The getters and
+   * setters keep the existing call sites, the template, and the unit tests
+   * working unchanged, while a signal write now schedules CD on its own.
+   */
+
+
   // DASHBOARD DATA
-  
 
-  month = periodLabel(currentPeriodKey());
 
-  targetGoal = 0;
+  private readonly monthSignal = signal(periodLabel(currentPeriodKey()));
 
-  displayName = '';
+  get month(): string {
+    return this.monthSignal();
+  }
 
-  settings: AppSettings = defaultSettings();
+  set month(value: string) {
+    this.monthSignal.set(value);
+  }
 
-  savingsGoals: SavingsGoal[] = [];
+  private readonly targetGoalSignal = signal(0);
+
+  get targetGoal(): number {
+    return this.targetGoalSignal();
+  }
+
+  set targetGoal(value: number) {
+    this.targetGoalSignal.set(value);
+  }
+
+  private readonly displayNameSignal = signal('');
+
+  get displayName(): string {
+    return this.displayNameSignal();
+  }
+
+  set displayName(value: string) {
+    this.displayNameSignal.set(value);
+  }
+
+  private readonly settingsSignal = signal<AppSettings>(defaultSettings());
+
+  get settings(): AppSettings {
+    return this.settingsSignal();
+  }
+
+  set settings(value: AppSettings) {
+    this.settingsSignal.set(value);
+  }
+
+  private readonly savingsGoalsSignal = signal<SavingsGoal[]>([]);
+
+  get savingsGoals(): SavingsGoal[] {
+    return this.savingsGoalsSignal();
+  }
+
+  set savingsGoals(value: SavingsGoal[]) {
+    this.savingsGoalsSignal.set(value);
+  }
 
   newIncome = {
     name: '',
@@ -143,7 +199,15 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   expensePresets = EXPENSE_CATEGORY_PRESETS;
 
-  goalDeposits: Record<string, string> = {};
+  private readonly goalDepositsSignal = signal<Record<string, string>>({});
+
+  get goalDeposits(): Record<string, string> {
+    return this.goalDepositsSignal();
+  }
+
+  set goalDeposits(value: Record<string, string>) {
+    this.goalDepositsSignal.set(value);
+  }
 
   addIncomeOpen = false;
 
@@ -170,9 +234,9 @@ export class DashboardPage implements OnInit, OnDestroy {
   profileMenuOpen = false;
 
 
-  
+
   // ADD CATEGORY
-  
+
 
   addCategoryOpen = false;
 
@@ -183,9 +247,9 @@ export class DashboardPage implements OnInit, OnDestroy {
   };
 
 
-  
+
   // EDIT CATEGORY
-  
+
 
   editingCategory = false;
 
@@ -196,9 +260,9 @@ export class DashboardPage implements OnInit, OnDestroy {
   editCategoryColor = 'emergency';
 
 
-  
+
   // ADD TARGET SAVINGS
-  
+
 
   addSavingsOpen = false;
 
@@ -209,29 +273,80 @@ export class DashboardPage implements OnInit, OnDestroy {
   };
 
 
-  
+
   // CATEGORY DETAIL
-  
+
 
   categoryDetailOpen = false;
 
-  selectedCategory: Category | null = null;
+  /**
+   * Held as a key rather than an object reference. `watchCategories()`
+   * rebuilds every Category on each snapshot, so a stored reference goes
+   * stale immediately; resolving through `selectedCategoryKey` means the
+   * detail sheet always reads live data.
+   */
+  private readonly selectedCategoryKey = signal<string | null>(null);
+
+  private readonly selectedCategoryNameSignal = signal<string | null>(null);
+
+  private readonly selectedCategoryPeriodSignal = signal<string | null>(null);
+
+  get selectedCategory(): Category | null {
+    const id = this.selectedCategoryKey();
+    if (id !== null) {
+      const match = this.categories.find(
+        (category) => categoryKey(category) === id
+      );
+      if (match) {
+        return match;
+      }
+    }
+    // Fall back to the name/period pair for entries that predate stable ids.
+    const name = this.selectedCategoryNameSignal();
+    const period = this.selectedCategoryPeriodSignal();
+    if (name === null) {
+      return null;
+    }
+    return (
+      this.categories.find(
+        (category) =>
+          (category.name ?? '') === name &&
+          (period === null || categoryPeriod(category) === period)
+      ) ?? null
+    );
+  }
+
+  set selectedCategory(value: Category | null) {
+    if (value === null) {
+      this.selectedCategoryKey.set(null);
+      this.selectedCategoryNameSignal.set(null);
+      this.selectedCategoryPeriodSignal.set(null);
+      return;
+    }
+    this.selectedCategoryKey.set(categoryKey(value));
+    this.selectedCategoryNameSignal.set(value.name ?? null);
+    this.selectedCategoryPeriodSignal.set(
+      /^\d{4}-\d{2}$/.test(String(value.period ?? ''))
+        ? (value.period as string)
+        : null
+    );
+  }
 
   addAmountInput = '';
 
 
-  
+
   // EDIT EXPENSE
-  
+
 
   editingExpenseId: string | null = null;
 
   editExpenseInput = '';
 
 
-  
+
   // SUMMARY
-  
+
 
   summaryOpen = false;
 
@@ -277,9 +392,22 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   
   // CATEGORIES
-  
 
-  categories: Category[] = [];
+
+  private readonly categoriesSignal = signal<Category[]>([]);
+
+  /**
+   * Every category the user owns, across all months. This is the single
+   * source of truth that gets persisted — `saveCategories()` writes the whole
+   * list. `periodCategories` is the per-month view the UI renders.
+   */
+  get categories(): Category[] {
+    return this.categoriesSignal();
+  }
+
+  set categories(value: Category[]) {
+    this.categoriesSignal.set(value);
+  }
 
 
   
@@ -379,9 +507,25 @@ export class DashboardPage implements OnInit, OnDestroy {
   // SEARCH + FILTER
 
 
-  searchQuery = '';
+  private readonly searchQuerySignal = signal('');
 
-  activeTone: string | null = null;
+  get searchQuery(): string {
+    return this.searchQuerySignal();
+  }
+
+  set searchQuery(value: string) {
+    this.searchQuerySignal.set(value);
+  }
+
+  private readonly activeToneSignal = signal<string | null>(null);
+
+  get activeTone(): string | null {
+    return this.activeToneSignal();
+  }
+
+  set activeTone(value: string | null) {
+    this.activeToneSignal.set(value);
+  }
 
   private categoryPeriodsMigrated = false;
 
@@ -721,21 +865,25 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   private saveCategories(): void {
 
-    this.categories.forEach(
-      category => {
+    // Rebuild the list with recalculated `amountSpent` rather than mutating
+    // in place. `this.categories` is a signal, so an in-place edit would
+    // save the corrected totals to Firestore without ever updating the view.
+    this.categories = this.categories.map((category) => {
 
-        if (!Array.isArray(category.expenses)) {
+      const expenses = Array.isArray(category.expenses)
+        ? category.expenses
+        : [];
 
-          category.expenses = [];
+      return {
+        ...category,
+        expenses,
+        amountSpent: expenses.reduce(
+          (sum, expense) => sum + this.toNumber(expense.amount),
+          0
+        ),
+      };
 
-        }
-
-        this.recalculateCategorySpent(
-          category
-        );
-
-      }
-    );
+    });
 
     void this.dataService.saveCategories(
       this.categories
@@ -762,13 +910,25 @@ export class DashboardPage implements OnInit, OnDestroy {
    * `period` field. Stamp them with the current month and persist, which
    * rewrites their doc ids to the new `YYYY-MM-name` format.
    *
-   * Idempotent: once every category carries a valid period this is a no-op,
-   * so it is safe to call on every snapshot.
+   * Only latches once it has actually seen a non-empty list. Previously an
+   * initial empty snapshot (signed out, or an offline cold start) satisfied
+   * `needsMigration === false` and set the latch, so the migration could
+   * never run again for the life of the page — leaving legacy documents to
+   * be handled only by the write path.
    */
   private migrateCategoryPeriods(): void {
 
     if (this.categoryPeriodsMigrated) {
 
+      return;
+
+    }
+
+
+    if (this.categories.length === 0) {
+
+      // Nothing to migrate yet — stay un-latched and re-check on the next
+      // snapshot once real data arrives.
       return;
 
     }
@@ -860,9 +1020,10 @@ export class DashboardPage implements OnInit, OnDestroy {
 
         next: categories => {
 
-          const previousSelected =
-            this.selectedCategory?.name;
-
+          // Assigning through the signal-backed setter is what schedules
+          // change detection. This callback fires from Firestore's transport,
+          // outside Angular, so a plain field assignment here would render
+          // nothing until the user happened to click something.
           this.categories = categories;
 
           this.categoriesReady = true;
@@ -871,19 +1032,8 @@ export class DashboardPage implements OnInit, OnDestroy {
 
           this.applyDueRecurring();
 
-          if (previousSelected) {
-
-            const match =
-              this.periodCategories.find(
-                category =>
-                  category.name ===
-                  previousSelected
-              );
-
-            this.selectedCategory =
-              match ?? null;
-
-          }
+          // `selectedCategory` is stored as a key and resolved on read, so
+          // this snapshot rebuilding every object needs no manual re-linking.
 
         },
 
@@ -1019,11 +1169,18 @@ export class DashboardPage implements OnInit, OnDestroy {
 
           this.savingsGoals = goals;
 
+          // Immutable update: mutating `this.goalDeposits` in place would
+          // write to the object a signal already handed out, and the view
+          // would not be notified.
+          const deposits = { ...this.goalDeposits };
+
           for (const goal of goals) {
-            if (!(goal.id in this.goalDeposits)) {
-              this.goalDeposits[goal.id] = '';
+            if (!(goal.id in deposits)) {
+              deposits[goal.id] = '';
             }
           }
+
+          this.goalDeposits = deposits;
 
           this.migrateLegacyGoal(goals);
 
@@ -1141,7 +1298,6 @@ export class DashboardPage implements OnInit, OnDestroy {
   ): number {
 
     return leftoverFromPrevious(
-      category,
       this.selectedPeriod,
       siblingForPreviousPeriod(
         category,
@@ -1398,15 +1554,15 @@ export class DashboardPage implements OnInit, OnDestroy {
           ).toISOString()
         : expenseTimestampForPeriod(period);
 
-      category.expenses.push({
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        amount,
-        date: loggedAt,
-        note: item.note || 'Recurring',
-        recurringId: item.id,
+      this.updateCategory(category, (draft) => {
+        draft.expenses.push({
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          amount,
+          date: loggedAt,
+          note: item.note || 'Recurring',
+          recurringId: item.id,
+        });
       });
-
-      this.recalculateCategorySpent(category);
 
       item.lastAppliedPeriod = period;
 
@@ -1808,20 +1964,15 @@ export class DashboardPage implements OnInit, OnDestroy {
       return;
 
     }
-    this.selectedCategory.name =
-      name;
-
-    this.selectedCategory.amountLimit =
-      amountLimit;
-
-    this.selectedCategory.tone =
-      this.editCategoryColor;
-
     const due = dueFieldsFromInput(this.editCategoryDueDate);
 
-    this.selectedCategory.dueDay = due.dueDay;
-
-    this.selectedCategory.dueDate = due.dueDate;
+    this.updateCategory(this.selectedCategory, (draft) => {
+      draft.name = name;
+      draft.amountLimit = amountLimit;
+      draft.tone = this.editCategoryColor;
+      draft.dueDay = due.dueDay;
+      draft.dueDate = due.dueDate;
+    });
 
     this.saveCategories();
 
@@ -1959,6 +2110,47 @@ export class DashboardPage implements OnInit, OnDestroy {
   }
 
 
+  /**
+   * Replace one category with a mutated copy and notify the view.
+   *
+   * `this.categories` is a signal, so mutating a category object in place
+   * would persist the data but never schedule change detection — the
+   * recurring-expense amounts below would save to Firestore without ever
+   * appearing on screen. Every mutation goes through here.
+   */
+  private updateCategory(
+    target: Category,
+    mutate: (draft: Category) => void
+  ): void {
+
+    const key = categoryKey(target);
+
+    this.categories = this.categories.map((category) => {
+
+      if (categoryKey(category) !== key) {
+
+        return category;
+
+      }
+
+      const draft: Category = {
+        ...category,
+        expenses: Array.isArray(category.expenses)
+          ? [...category.expenses]
+          : [],
+      };
+
+      mutate(draft);
+
+      this.recalculateCategorySpent(draft);
+
+      return draft;
+
+    });
+
+  }
+
+
   
   // EDIT EXPENSE
   
@@ -2071,16 +2263,13 @@ export class DashboardPage implements OnInit, OnDestroy {
     }
 
 
-    expense.amount =
-      newAmount;
-
-    expense.note =
-      this.editExpenseNote.trim();
-
-
-    this.recalculateCategorySpent(
-      this.selectedCategory
-    );
+    this.updateCategory(this.selectedCategory, (draft) => {
+      const match = draft.expenses.find((item) => item.id === expense.id);
+      if (match) {
+        match.amount = newAmount;
+        match.note = this.editExpenseNote.trim();
+      }
+    });
 
 
     this.saveCategories();
@@ -2121,16 +2310,12 @@ export class DashboardPage implements OnInit, OnDestroy {
     }
 
 
-    this.selectedCategory.expenses =
-      this.selectedCategory.expenses.filter(
-        item =>
+    this.updateCategory(this.selectedCategory, (draft) => {
+      draft.expenses = draft.expenses.filter(
+        (item) =>
           item.id !== expense.id
       );
-
-
-    this.recalculateCategorySpent(
-      this.selectedCategory
-    );
+    });
 
 
     this.saveCategories();
@@ -2207,9 +2392,8 @@ export class DashboardPage implements OnInit, OnDestroy {
 
     }
 
-    this.categories.splice(
-      categoryIndex,
-      1
+    this.categories = this.categories.filter(
+      (_, index) => index !== categoryIndex
     );
 
 
@@ -2429,9 +2613,10 @@ export class DashboardPage implements OnInit, OnDestroy {
 
     };
 
-    this.categories.push(
-      newCategory
-    );
+    this.categories = [
+      ...this.categories,
+      newCategory,
+    ];
 
     this.saveCategories();
 
@@ -2689,20 +2874,14 @@ export class DashboardPage implements OnInit, OnDestroy {
 
     const applied = Math.min(amount, remaining);
 
-    if (!Array.isArray(category.expenses)) {
-
-      category.expenses = [];
-
-    }
-
-    category.expenses.push({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      amount: applied,
-      date: expenseTimestampForPeriod(this.selectedPeriod),
-      note: note.trim(),
+    this.updateCategory(category, (draft) => {
+      draft.expenses.push({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        amount: applied,
+        date: expenseTimestampForPeriod(this.selectedPeriod),
+        note: note.trim(),
+      });
     });
-
-    this.recalculateCategorySpent(category);
 
     this.saveCategories();
 

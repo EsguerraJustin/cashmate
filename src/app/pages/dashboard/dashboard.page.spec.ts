@@ -5,6 +5,7 @@ import { ToastController } from '@ionic/angular';
 import { DashboardPage } from './dashboard.page';
 import { FirestoreDataService } from '../../services/firestore-data.service';
 import { FIREBASE_AUTH } from '../../core/firebase.tokens';
+import { currentPeriodKey } from '../../models/budget.model';
 
 describe('DashboardPage', () => {
   let component: DashboardPage;
@@ -25,9 +26,14 @@ describe('DashboardPage', () => {
             watchSavingsGoal: () => of(0),
             watchSettings: () => of({
               displayName: '',
-              selectedPeriod: '2026-09',
+              // Must track the real current month: categories created without
+              // an explicit `period` resolve to it, so a hardcoded month here
+              // made every period-less fixture filter out of the current view
+              // the moment the calendar rolled over.
+              selectedPeriod: currentPeriodKey(),
               rollLeftover: true,
               incomes: [],
+              incomesByPeriod: {},
               recurring: [],
               targetSavings: 0,
             }),
@@ -56,6 +62,47 @@ describe('DashboardPage', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+
+  describe('zoneless change detection', () => {
+
+    it('re-renders the category list when a snapshot arrives', () => {
+      // The app is zoneless, so a snapshot landing outside Angular used to
+      // leave the view on its empty state until the user clicked something.
+      // Assigning through the signal-backed setter must schedule a render on
+      // its own, with no event to trigger it.
+      component.categories = [
+        { name: 'Rent', tone: 'bills', amountLimit: 100, amountSpent: 0, expenses: [], period: '2026-01' },
+      ];
+      component.settings = { ...component.settings, selectedPeriod: '2026-01' };
+
+      fixture.detectChanges();
+
+      const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+      expect(text).toContain('Rent');
+    });
+
+    it('keeps the detail sheet bound to a category across snapshots', () => {
+      // `watchCategories` rebuilds every object each snapshot, so the detail
+      // sheet resolves the selection by key instead of holding a reference.
+      component.categories = [
+        { name: 'Rent', tone: 'bills', amountLimit: 100, amountSpent: 0, expenses: [], period: '2026-01' },
+      ];
+      component.settings = { ...component.settings, selectedPeriod: '2026-01' };
+      component.selectedCategory = component.categories[0];
+      const key = component.selectedCategory;
+
+      // Simulate a snapshot replacing every object with a fresh instance.
+      component.categories = [
+        { name: 'Rent', tone: 'bills', amountLimit: 250, amountSpent: 0, expenses: [], period: '2026-01' },
+      ];
+
+      expect(component.selectedCategory).not.toBeNull();
+      expect(component.selectedCategory?.amountLimit).toBe(250);
+      expect(component.selectedCategory === key).toBe(false);
+    });
+
   });
 
 
@@ -233,6 +280,34 @@ describe('DashboardPage', () => {
         rollLeftover: false,
       };
       expect(component.totalLimit).toBe(12000);
+    });
+
+    it('does not double a brand-new category that has no previous month', () => {
+      // Regression: `leftoverFromPrevious` used to fall back to reading the
+      // limit off `category` itself when there was no prior-month sibling, so
+      // a fresh 5000 category rendered a 10000 limit.
+      component.categories = [cat('Food', '2026-09', 5000)];
+      component.settings = {
+        ...component.settings,
+        selectedPeriod: '2026-09',
+        rollLeftover: true,
+      };
+
+      expect(component.limitOf(component.categories[0])).toBe(5000);
+      expect(component.leftoverOf(component.categories[0])).toBe(0);
+    });
+
+    it('leaves every brand-new category at exactly its entered limit', () => {
+      component.settings = {
+        ...component.settings,
+        selectedPeriod: '2026-09',
+        rollLeftover: true,
+      };
+
+      for (const limit of [1000, 5000, 25000]) {
+        component.categories = [cat(`Item${limit}`, '2026-09', limit)];
+        expect(component.limitOf(component.categories[0])).toBe(limit);
+      }
     });
 
     it('rolls leftover from the previous month, not from itself', () => {

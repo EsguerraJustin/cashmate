@@ -2,7 +2,6 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   collection,
-  deleteDoc,
   doc,
   getDocs,
   onSnapshot,
@@ -48,7 +47,7 @@ function normalizeExpense(raw: any, index: number): Expense {
   };
 }
 
-function normalizeCategory(raw: any): Category {
+function normalizeCategory(raw: any, docId: string): Category {
   const expenses: Expense[] = Array.isArray(raw?.expenses)
     ? raw.expenses.map((item: any, index: number) =>
         normalizeExpense(item, index)
@@ -70,6 +69,7 @@ function normalizeCategory(raw: any): Category {
   const period = /^\d{4}-\d{2}$/.test(periodRaw) ? periodRaw : null;
 
   return {
+    id: String(docId ?? ''),
     name: String(raw?.name ?? ''),
     tone: String(raw?.tone ?? 'emergency'),
     amountLimit: toNumber(raw?.amountLimit),
@@ -219,7 +219,11 @@ function serializeSettings(settings: AppSettings): Record<string, unknown> {
       lastAppliedPeriod: item.lastAppliedPeriod,
       lastAppliedDate: item.lastAppliedDate,
     })),
-    [SETTINGS_FIELD]: toNumber(settings.targetSavings),
+    // `targetSavings` is deliberately NOT written here. It is the legacy
+    // aggregate of the goals collection, owned solely by `saveGoals()`.
+    // Serialising it meant any `saveSettings()` carrying a stale in-memory
+    // copy (e.g. the overview page switching months) silently rolled the
+    // total back, desyncing it from the actual goals.
   };
 }
 
@@ -269,7 +273,7 @@ export class FirestoreDataService {
             colRef,
             (snap) => {
               subscriber.next(
-                snap.docs.map((d) => normalizeCategory(d.data()))
+                snap.docs.map((d) => normalizeCategory(d.data(), d.id))
               );
             },
             (err) => subscriber.error(err)
@@ -357,55 +361,109 @@ export class FirestoreDataService {
     });
   }
 
+  /**
+   * Serialises writes per collection. The old implementation read the
+   * document list with `getDocs` *after* awaiting `batch.commit()`, then
+   * deleted everything missing from a `seen` set frozen at call time. Two
+   * overlapping calls (e.g. `migrateCategoryPeriods` firing on page load
+   * while the user adds a category) meant the older call's sweep deleted the
+   * newer call's freshly written documents. Chaining every write removes the
+   * interleaving entirely, and the deletes now ride in the same batch as the
+   * writes so the whole thing commits atomically.
+   */
+  private categoriesWriteChain: Promise<unknown> = Promise.resolve();
+
+  private goalsWriteChain: Promise<unknown> = Promise.resolve();
+
+  private enqueue<T>(
+    chain: Promise<unknown>,
+    task: () => Promise<T>
+  ): Promise<T> {
+    // Swallow the predecessor's rejection so one failed write cannot poison
+    // every write that follows it, while still surfacing this call's result.
+    const result = chain.then(task, task);
+    return result;
+  }
+
   async saveCategories(categories: Category[]): Promise<void> {
-    const uid = this.uidOrThrow();
-    const colRef = collection(this.firestore, this.categoriesPath(uid));
+    const run = this.enqueue(this.categoriesWriteChain, async () => {
+      const uid = this.uidOrThrow();
+      const colRef = collection(this.firestore, this.categoriesPath(uid));
 
-    const seen = new Set<string>();
-    const batch = writeBatch(this.firestore);
-    for (const cat of categories) {
-      // Categories are per-period, so the doc id must include the period.
-      // Otherwise the same category name in two different months would
-      // resolve to one document and silently overwrite the other.
-      const id = sanitizeDocId(`${categoryPeriod(cat)}-${cat.name}`);
-      if (!id) {
-        continue;
+      // Read the existing docs BEFORE building the batch so the delete set is
+      // computed from a consistent snapshot of the collection.
+      const existing = await getDocs(colRef);
+      const existingIds = new Set(existing.docs.map((d) => d.id));
+
+      const seen = new Set<string>();
+      const batch = writeBatch(this.firestore);
+
+      for (const cat of categories) {
+        const name = String(cat?.name ?? '').trim();
+        if (!name) {
+          continue;
+        }
+
+        // Prefer the document's own id. Deriving `period-name` here meant a
+        // rename re-keyed the document, and a category with no `period` was
+        // coerced to the current month — so a legacy doc and a new doc with
+        // the same name both hashed to the same id and overwrote each other.
+        const id = String(cat.id ?? '').trim() || this.deriveCategoryDocId(cat);
+
+        // Guard against two in-memory entries claiming one document: writing
+        // both would silently discard one of them.
+        if (seen.has(id)) {
+          console.warn(
+            `[CashMate] Duplicate category document id "${id}" (name "${name}"); keeping the first.`
+          );
+          continue;
+        }
+        seen.add(id);
+
+        const expenses = Array.isArray(cat.expenses) ? cat.expenses : [];
+        const amountSpent = expenses.reduce(
+          (sum, e) => sum + toNumber(e.amount),
+          0
+        );
+        const dueDay = toNumber(cat.dueDay);
+        const dueDateRaw = String(cat.dueDate ?? '').trim();
+        batch.set(doc(this.firestore, this.categoriesPath(uid), id), {
+          id,
+          name: cat.name,
+          tone: cat.tone,
+          amountLimit: toNumber(cat.amountLimit),
+          amountSpent,
+          dueDay: dueDay >= 1 && dueDay <= 31 ? Math.round(dueDay) : null,
+          dueDate: /^\d{4}-\d{2}-\d{2}$/.test(dueDateRaw) ? dueDateRaw : null,
+          period: categoryPeriod(cat),
+          expenses: expenses.map((e) => ({
+            id: String(e.id),
+            amount: toNumber(e.amount),
+            date: String(e.date),
+            note: String(e.note ?? '').trim(),
+            recurringId: e.recurringId ? String(e.recurringId) : null,
+          })),
+        });
       }
-      seen.add(id);
-      const ref = doc(this.firestore, this.categoriesPath(uid), id);
-      const expenses = Array.isArray(cat.expenses) ? cat.expenses : [];
-      const amountSpent = expenses.reduce(
-        (sum, e) => sum + toNumber(e.amount),
-        0
-      );
-      const dueDay = toNumber(cat.dueDay);
-      const dueDateRaw = String(cat.dueDate ?? '').trim();
-      batch.set(ref, {
-        name: cat.name,
-        tone: cat.tone,
-        amountLimit: toNumber(cat.amountLimit),
-        amountSpent,
-        dueDay: dueDay >= 1 && dueDay <= 31 ? Math.round(dueDay) : null,
-        dueDate: /^\d{4}-\d{2}-\d{2}$/.test(dueDateRaw) ? dueDateRaw : null,
-        period: categoryPeriod(cat),
-        expenses: expenses.map((e) => ({
-          id: String(e.id),
-          amount: toNumber(e.amount),
-          date: String(e.date),
-          note: String(e.note ?? '').trim(),
-          recurringId: e.recurringId ? String(e.recurringId) : null,
-        })),
-      });
-    }
-    await batch.commit();
 
-    const existing = await getDocs(colRef);
-    const stale = existing.docs.filter((d) => !seen.has(d.id));
-    await Promise.all(
-      stale.map((d) =>
-        deleteDoc(doc(this.firestore, this.categoriesPath(uid), d.id))
-      )
-    );
+      // Same batch as the writes, so a reader never observes the collection
+      // mid-sweep.
+      for (const existingId of existingIds) {
+        if (!seen.has(existingId)) {
+          batch.delete(doc(this.firestore, this.categoriesPath(uid), existingId));
+        }
+      }
+
+      await batch.commit();
+    });
+
+    this.categoriesWriteChain = run.catch(() => undefined);
+    return run;
+  }
+
+  /** Legacy id shape, kept only for categories that have no stored id yet. */
+  private deriveCategoryDocId(cat: Category): string {
+    return sanitizeDocId(`${categoryPeriod(cat)}-${cat.name}`);
   }
 
   async saveSettings(settings: AppSettings): Promise<void> {
@@ -427,40 +485,49 @@ export class FirestoreDataService {
   }
 
   async saveGoals(goals: SavingsGoal[]): Promise<void> {
-    const uid = this.uidOrThrow();
-    const colRef = collection(this.firestore, this.goalsPath(uid));
-    const seen = new Set<string>();
-    const batch = writeBatch(this.firestore);
+    const run = this.enqueue(this.goalsWriteChain, async () => {
+      const uid = this.uidOrThrow();
+      const colRef = collection(this.firestore, this.goalsPath(uid));
+      const existing = await getDocs(colRef);
+      const existingIds = new Set(existing.docs.map((d) => d.id));
 
-    for (const goal of goals) {
-      const id = String(goal.id || sanitizeDocId(goal.name)).trim();
-      if (!id) {
-        continue;
+      const seen = new Set<string>();
+      const batch = writeBatch(this.firestore);
+
+      for (const goal of goals) {
+        const id = String(goal.id || sanitizeDocId(goal.name)).trim();
+        if (!id || seen.has(id)) {
+          continue;
+        }
+        seen.add(id);
+        const ref = doc(this.firestore, this.goalsPath(uid), id);
+        batch.set(ref, {
+          id,
+          name: goal.name,
+          targetAmount: toNumber(goal.targetAmount),
+          savedAmount: Math.max(0, toNumber(goal.savedAmount)),
+          tone: goal.tone || 'goal',
+        });
       }
-      seen.add(id);
-      const ref = doc(this.firestore, this.goalsPath(uid), id);
-      batch.set(ref, {
-        id,
-        name: goal.name,
-        targetAmount: toNumber(goal.targetAmount),
-        savedAmount: Math.max(0, toNumber(goal.savedAmount)),
-        tone: goal.tone || 'goal',
-      });
-    }
-    await batch.commit();
 
-    const existing = await getDocs(colRef);
-    const stale = existing.docs.filter((d) => !seen.has(d.id));
-    await Promise.all(
-      stale.map((d) =>
-        deleteDoc(doc(this.firestore, this.goalsPath(uid), d.id))
+      for (const existingId of existingIds) {
+        if (!seen.has(existingId)) {
+          batch.delete(doc(this.firestore, this.goalsPath(uid), existingId));
+        }
+      }
+
+      // One atomic commit: writes and deletes together, same as categories.
+      await batch.commit();
+    });
+
+    this.goalsWriteChain = run.catch(() => undefined);
+    return run.then(() =>
+      // Keep the legacy `targetSavings` aggregate in step with the goals
+      // collection. It lives on the settings document, so it is a separate
+      // write — but it is derived here, never from a caller's stale copy.
+      this.saveSavingsGoal(
+        goals.reduce((sum, goal) => sum + toNumber(goal.targetAmount), 0)
       )
     );
-
-    const total = goals.reduce(
-      (sum, goal) => sum + toNumber(goal.targetAmount),
-      0
-    );
-    await this.saveSavingsGoal(total);
   }
 }

@@ -1,5 +1,5 @@
 
-import { Component, OnDestroy, inject } from '@angular/core';
+import { Component, OnDestroy, inject, signal } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -96,10 +96,30 @@ export class DashboardOverviewPage
   private readonly auth = inject<Auth>(FIREBASE_AUTH);
 
 
+  /*   REACTIVE STATE
+
+   * The app runs zoneless, and Firestore snapshots arrive outside Angular's
+   * scheduler. Every field the template reads is therefore a signal behind a
+   * getter, so a snapshot write schedules change detection on its own.
+
+   * This page has no `ngModel` bindings and no host listeners, so before
+   * this change nothing ever triggered a render after load: the savings
+   * goals were fetched correctly but the view stayed on its empty-state card
+   * until the user happened to tap something.
+   */
+
 
   /*   FIRESTORE STATE  */
 
-  private rawCategories: Category[] = [];
+  private readonly rawCategoriesSignal = signal<Category[]>([]);
+
+  private get rawCategories(): Category[] {
+    return this.rawCategoriesSignal();
+  }
+
+  private set rawCategories(value: Category[]) {
+    this.rawCategoriesSignal.set(value);
+  }
 
   /** Categories for the month being viewed — mirrors the dashboard. */
   get periodCategories(): Category[] {
@@ -115,37 +135,146 @@ export class DashboardOverviewPage
 
   private readonly dataSubs = new Subscription();
 
-  settings: AppSettings = defaultSettings();
+  private readonly settingsSignal = signal<AppSettings>(defaultSettings());
 
-  savingsGoals: SavingsGoal[] = [];
+  get settings(): AppSettings {
+    return this.settingsSignal();
+  }
+
+  set settings(value: AppSettings) {
+    this.settingsSignal.set(value);
+  }
+
+  private readonly savingsGoalsSignal = signal<SavingsGoal[]>([]);
+
+  get savingsGoals(): SavingsGoal[] {
+    return this.savingsGoalsSignal();
+  }
+
+  set savingsGoals(value: SavingsGoal[]) {
+    this.savingsGoalsSignal.set(value);
+  }
 
 
-  /*   TOTALS  */
+  /*   TOTALS
 
-  totalBudget = 0;
+   * Signals for the same reason as the state above: `loadCategories()`
+   * rewrites them from a snapshot callback, and a plain field write there
+   * would not re-render the stats grid.
+   */
 
-  totalSpent = 0;
+  private readonly totalBudgetSignal = signal(0);
 
-  totalRemaining = 0;
+  get totalBudget(): number {
+    return this.totalBudgetSignal();
+  }
 
-  spentPercent = 0;
+  set totalBudget(value: number) {
+    this.totalBudgetSignal.set(value);
+  }
 
-  targetGoal = 0;
+  private readonly totalSpentSignal = signal(0);
 
-  incomeTotal = 0;
+  get totalSpent(): number {
+    return this.totalSpentSignal();
+  }
 
-  cashRemaining = 0;
+  set totalSpent(value: number) {
+    this.totalSpentSignal.set(value);
+  }
 
-  monthLabel = periodLabel(currentPeriodKey());
+  private readonly totalRemainingSignal = signal(0);
+
+  get totalRemaining(): number {
+    return this.totalRemainingSignal();
+  }
+
+  set totalRemaining(value: number) {
+    this.totalRemainingSignal.set(value);
+  }
+
+  private readonly spentPercentSignal = signal(0);
+
+  get spentPercent(): number {
+    return this.spentPercentSignal();
+  }
+
+  set spentPercent(value: number) {
+    this.spentPercentSignal.set(value);
+  }
+
+  private readonly targetGoalSignal = signal(0);
+
+  get targetGoal(): number {
+    return this.targetGoalSignal();
+  }
+
+  set targetGoal(value: number) {
+    this.targetGoalSignal.set(value);
+  }
+
+  private readonly incomeTotalSignal = signal(0);
+
+  get incomeTotal(): number {
+    return this.incomeTotalSignal();
+  }
+
+  set incomeTotal(value: number) {
+    this.incomeTotalSignal.set(value);
+  }
+
+  private readonly cashRemainingSignal = signal(0);
+
+  get cashRemaining(): number {
+    return this.cashRemainingSignal();
+  }
+
+  set cashRemaining(value: number) {
+    this.cashRemainingSignal.set(value);
+  }
+
+  private readonly monthLabelSignal = signal(periodLabel(currentPeriodKey()));
+
+  get monthLabel(): string {
+    return this.monthLabelSignal();
+  }
+
+  set monthLabel(value: string) {
+    this.monthLabelSignal.set(value);
+  }
 
 
   /*   DISPLAY DATA */
 
-  categories: CategoryStat[] = [];
+  private readonly categoriesSignal = signal<CategoryStat[]>([]);
 
-  monthlyData: MonthlyBar[] = [];
+  get categories(): CategoryStat[] {
+    return this.categoriesSignal();
+  }
 
-  donutSegments: DonutSegment[] = [];
+  set categories(value: CategoryStat[]) {
+    this.categoriesSignal.set(value);
+  }
+
+  private readonly monthlyDataSignal = signal<MonthlyBar[]>([]);
+
+  get monthlyData(): MonthlyBar[] {
+    return this.monthlyDataSignal();
+  }
+
+  set monthlyData(value: MonthlyBar[]) {
+    this.monthlyDataSignal.set(value);
+  }
+
+  private readonly donutSegmentsSignal = signal<DonutSegment[]>([]);
+
+  get donutSegments(): DonutSegment[] {
+    return this.donutSegmentsSignal();
+  }
+
+  set donutSegments(value: DonutSegment[]) {
+    this.donutSegmentsSignal.set(value);
+  }
 
 
   /*   COLORS */
@@ -421,13 +550,7 @@ export class DashboardOverviewPage
         source.length === 0
       ) {
 
-        const keepGoal =
-          this.targetGoal;
-
         this.resetDashboard();
-
-        this.targetGoal =
-          keepGoal;
 
         this.monthLabel = periodLabel(period);
 
@@ -630,7 +753,12 @@ export class DashboardOverviewPage
 
     this.spentPercent = 0;
 
-    this.targetGoal = 0;
+    // `targetGoal` is deliberately NOT cleared here. It comes from the
+    // settings document, not from the category data, so a failure while
+    // computing category stats has no bearing on it — zeroing it would
+    // wipe the user's savings target and make `visibleGoals` fall back to a
+    // synthetic 0% "Target Savings" goal. The empty-month branch in
+    // `loadCategories()` preserves it for the same reason.
 
     this.incomeTotal = 0;
 

@@ -7,6 +7,13 @@ export interface Expense {
 }
 
 export interface Category {
+  /**
+   * Stable Firestore document id. Carried through from the snapshot so a
+   * category keeps its identity across renames and period migrations —
+   * deriving the id from `period` + `name` instead meant a rename silently
+   * re-keyed (and could collide with) another document.
+   */
+  id?: string;
   name: string;
   tone: string;
   amountLimit: number;
@@ -137,21 +144,28 @@ export function siblingForPreviousPeriod(
 }
 
 /**
- * Unspent budget carried into `period`. `previous` must be the
- * same-named category from the prior month — reading it off `category`
- * itself returns 0 for every period now that categories are month-scoped,
- * which silently doubled every limit.
+ * Unspent budget carried into `period`, read from the same-named category in
+ * the PREVIOUS month.
+ *
+ * `previous` is required, and must be the prior month's sibling. Falling back
+ * to `category` itself is what doubled every limit: a brand-new category has
+ * no prior month, so `previous` is `null`, and the fallback computed
+ * `category.amountLimit - periodSpent(category, previousPeriod)` — its own
+ * limit minus zero. `effectiveLimit` then added that on top of the real
+ * limit, so a 5000 category rendered as 10000. With no prior month there is
+ * nothing to carry, so the answer is 0.
  */
 export function leftoverFromPrevious(
-  category: Category,
   period: string,
   previous?: Category | null
 ): number {
-  const previousPeriod = shiftPeriod(period, -1);
-  const base = previous ?? category;
+  if (!previous) {
+    return 0;
+  }
   return Math.max(
     0,
-    toNumber(base.amountLimit) - periodSpent(base, previousPeriod)
+    toNumber(previous.amountLimit) -
+      periodSpent(previous, shiftPeriod(period, -1))
   );
 }
 
@@ -161,14 +175,16 @@ export function effectiveLimit(
   rollLeftover: boolean,
   allCategories?: Category[]
 ): number {
-  const previous =
-    allCategories && rollLeftover
-      ? siblingForPreviousPeriod(category, allCategories, period)
-      : null;
+  if (!rollLeftover) {
+    return toNumber(category.amountLimit);
+  }
+
+  const previous = allCategories
+    ? siblingForPreviousPeriod(category, allCategories, period)
+    : null;
 
   return (
-    toNumber(category.amountLimit) +
-    (rollLeftover ? leftoverFromPrevious(category, period, previous) : 0)
+    toNumber(category.amountLimit) + leftoverFromPrevious(period, previous)
   );
 }
 
@@ -237,6 +253,20 @@ export function categoryPeriod(category: Category): string {
   return isPeriodKey(category?.period)
     ? (category.period as string)
     : currentPeriodKey();
+}
+
+/**
+ * Stable identity for a category: its Firestore document id when it has one,
+ * otherwise the same `YYYY-MM-name` shape the service used to derive. Callers
+ * that need to match a category across a snapshot (which rebuilds every
+ * object) should use this rather than `===` or a bare name compare.
+ */
+export function categoryKey(category: Category): string {
+  const id = String(category?.id ?? '').trim();
+  if (id) {
+    return id;
+  }
+  return `${categoryPeriod(category)}::${(category.name ?? '').trim().toLowerCase()}`;
 }
 
 /** Only the categories belonging to `period`. */
