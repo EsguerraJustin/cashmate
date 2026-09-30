@@ -1,0 +1,2975 @@
+/*
+
+* App Global CSS
+* ---
+* Global styles for CashMate Ionic application.
+  */
+
+/* =========================================================
+IONIC CORE CSS
+========================================================= */
+
+@import "@ionic/angular/css/core.css";
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/* =========================================================
+GLOBAL
+========================================================= */
+
+html,
+body {
+font-family: var(--ion-font-family);
+background: var(--pw-white);
+}
+
+/* =========================================================
+GENERAL CASHMATE PAGE
+========================================================= */
+
+.pw-page {
+--background: transparent;
+}
+
+.pw-shell {
+min-height: 100%;
+padding: 28px 22px 36px;
+background:
+radial-gradient(
+circle at top right,
+rgba(119, 187, 162, 0.35),
+transparent 42%
+),
+linear-gradient(
+180deg,
+var(--pw-mint) 0%,
+var(--pw-white) 42%,
+var(--pw-white) 100%
+);
+}
+
+/* =========================================================
+BRAND
+========================================================= */
+
+.pw-brand {
+text-align: center;
+margin-bottom: 28px;
+}
+
+.pw-brand__logo {
+display: block;
+width: 200px;
+height: 200px;
+object-fit: contain;
+margin: 0 auto 14px;
+}
+
+.pw-brand__logo_main {
+width: 100px;
+height: 100px;
+}
+
+.pw-brand__title {
+margin: 0;
+color: var(--pw-green-deep);
+font-family: "Fraunces", Georgia, serif;
+font-size: 1.85rem;
+font-weight: 700;
+letter-spacing: 0.02em;
+line-height: 1.15;
+text-transform: uppercase;
+}
+
+.pw-brand__tagline {
+margin: 10px 0 0;
+color: var(--pw-muted);
+font-size: 0.78rem;
+font-weight: 600;
+letter-spacing: 0.08em;
+text-transform: uppercase;
+}
+
+/* =========================================================
+GENERAL PANEL
+========================================================= */
+
+.pw-panel {
+background: rgba(255, 255, 255, 0.92);
+border: 1px solid rgba(13, 82, 44, 0.08);
+border-radius: 28px;
+box-shadow: var(--pw-shadow);
+padding: 28px 22px 24px;
+}
+
+.pw-panel__heading {
+margin: 0 0 22px;
+color: var(--pw-green-deep);
+font-size: 1.05rem;
+font-weight: 700;
+letter-spacing: 0.04em;
+text-align: center;
+text-transform: uppercase;
+}
+
+/* =========================================================
+FORM FIELDS
+========================================================= */
+
+.pw-field {
+margin-bottom: 16px;
+}
+
+.pw-field label {
+display: block;
+margin-bottom: 8px;
+color: var(--pw-ink);
+font-size: 0.85rem;
+font-weight: 600;
+}
+
+.pw-field ion-input {
+--background: var(--pw-mint);
+--padding-start: 16px;
+--padding-end: 16px;
+--padding-top: 12px;
+--padding-bottom: 12px;
+--placeholder-color: var(--pw-muted);
+--placeholder-opacity: 0.7;
+--border-radius: 14px;
+--highlight-color-focused: var(--pw-green-deep);
+
+border-radius: 14px;
+min-height: 48px;
+}
+
+/* =========================================================
+GENERAL BUTTON
+========================================================= */
+
+.pw-btn {
+margin-top: 8px;
+--background: var(--pw-green-deep);
+--background-activated: var(--pw-green-mid);
+--background-hover: var(--pw-green-mid);
+--border-radius: 14px;
+--box-shadow: none;
+--color: var(--pw-white);
+
+font-weight: 700;
+letter-spacing: 0.04em;
+height: 48px;
+text-transform: none;
+}
+
+/* =========================================================
+LINKS
+========================================================= */
+
+.pw-link-row {
+margin-top: 18px;
+text-align: center;
+color: var(--pw-muted);
+font-size: 0.9rem;
+}
+
+.pw-link-row a {
+color: var(--pw-green-deep);
+font-weight: 700;
+text-decoration: none;
+}
+
+/* =========================================================
+MONTHLY EXPENSES PAGE
+========================================================= */
+
+.pw-expenses-shell {
+min-height: 100%;
+padding: 18px 18px 28px;
+background: var(--pw-white);
+}
+
+.pw-expenses-shell--actions {
+background:
+linear-gradient(
+180deg,
+var(--pw-green-deep) 0%,
+var(--pw-green-deep) 128px,
+#eef3f0 128px,
+#eef3f0 100%
+);
+}
+
+/* =========================================================
+EXPENSE APP BAR
+========================================================= */
+
+.pw-appbar {
+display: flex;
+align-items: center;
+justify-content: flex-start;
+margin-bottom: 22px;
+color: var(--pw-green-deep);
+}
+
+.pw-appbar__brand {
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.pw-logo {
+width: 42px;
+height: 42px;
+border-radius: 50%;
+background: var(--pw-mint);
+border: 2px solid var(--pw-green-deep);
+
+display: grid;
+place-items: center;
+
+color: var(--pw-green-deep);
+font-family: "Fraunces", Georgia, serif;
+font-size: 1.2rem;
+font-weight: 700;
+
+flex-shrink: 0;
+}
+
+.pw-appbar h1 {
+margin: 0;
+font-family: "Outfit", sans-serif;
+font-size: 1.15rem;
+font-weight: 800;
+letter-spacing: 0.08em;
+}
+
+.pw-appbar ion-button {
+--color: var(--pw-green-deep);
+margin: 0;
+}
+
+.pw-expenses-shell--actions .pw-appbar,
+.pw-expenses-shell--actions .pw-appbar ion-button {
+color: var(--pw-white);
+--color: var(--pw-white);
+}
+
+.pw-expenses-shell--actions .pw-logo {
+background: rgba(255, 255, 255, 0.15);
+border-color: var(--pw-white);
+color: var(--pw-white);
+}
+
+.pw-expenses-shell--actions .pw-appbar h1 {
+font-family: "Fraunces", Georgia, serif;
+color: var(--pw-white);
+}
+
+/* =========================================================
+MONTHLY EXPENSES TITLE
+========================================================= */
+
+.pw-section-title {
+margin: 0 0 6px;
+color: var(--pw-green-deep);
+font-size: 1.35rem;
+font-weight: 800;
+letter-spacing: 0.04em;
+text-transform: uppercase;
+}
+
+.pw-section-meta {
+margin: 0 0 14px;
+color: var(--pw-green-deep);
+font-size: 0.9rem;
+font-weight: 500;
+letter-spacing: 0.06em;
+text-transform: uppercase;
+}
+
+.pw-expenses-shell--actions .pw-section-title,
+.pw-expenses-shell--actions .pw-section-meta {
+color: var(--pw-white);
+}
+
+/* =========================================================
+QUICK ACTION MENU
+========================================================= */
+
+.pw-hover-menu {
+position: relative;
+margin: 0 0 18px;
+z-index: 5;
+}
+
+.pw-hover-menu__trigger {
+display: inline-flex;
+align-items: center;
+gap: 8px;
+
+padding: 12px 18px;
+
+border: none;
+border-radius: 14px;
+
+background: var(--pw-green-deep);
+color: var(--pw-white);
+
+font-family: inherit;
+font-size: 0.92rem;
+font-weight: 700;
+letter-spacing: 0.03em;
+
+cursor: pointer;
+
+transition:
+background 0.2s ease,
+border-radius 0.2s ease;
+}
+
+.pw-hover-menu__trigger ion-icon {
+font-size: 1rem;
+transition: transform 0.25s ease;
+}
+
+.pw-hover-menu.is-open .pw-hover-menu__trigger {
+background: var(--pw-green-mid);
+}
+
+.pw-hover-menu.is-open .pw-hover-menu__trigger ion-icon {
+transform: rotate(180deg);
+}
+
+.pw-hover-menu__panel {
+position: absolute;
+left: 0;
+top: 100%;
+
+/* Size to the widest item instead of inheriting the trigger's width.
+The trigger is shrink-to-fit inside the toolbar, so `right: 0` here
+used to collapse the panel and wrap every label mid-word. */
+min-width: 100%;
+width: max-content;
+max-width: 78vw;
+
+display: grid;
+
+max-height: 0;
+overflow: hidden;
+
+opacity: 0;
+
+background: var(--pw-white);
+border: 1.5px solid var(--pw-green-deep);
+border-top: none;
+border-radius: 0 0 14px 14px;
+
+box-shadow: var(--pw-shadow);
+
+transform: translateY(-4px);
+
+transition:
+max-height 0.28s ease,
+opacity 0.2s ease,
+transform 0.2s ease;
+
+pointer-events: none;
+}
+
+.pw-hover-menu__panel--right {
+left: auto;
+right: 0;
+}
+
+.pw-hover-menu.is-open .pw-hover-menu__panel {
+max-height: 420px;
+overflow-y: auto;
+opacity: 1;
+transform: translateY(0);
+pointer-events: auto;
+}
+
+.pw-hover-menu__item {
+padding: 14px 18px;
+
+border: none;
+border-bottom: 1px solid rgba(13, 82, 44, 0.1);
+
+background: transparent;
+color: var(--pw-green-deep);
+
+font-family: inherit;
+font-size: 0.9rem;
+font-weight: 700;
+text-align: left;
+
+/* Keep labels on one line; the panel now sizes to its widest item. */
+white-space: nowrap;
+
+cursor: pointer;
+
+transition: background 0.15s ease;
+}
+
+.pw-hover-menu__item:last-child {
+border-bottom: none;
+}
+
+.pw-hover-menu__item:hover {
+background: var(--pw-mint);
+}
+
+/* =========================================================
+EXPENSE CATEGORY CARDS
+========================================================= */
+
+.pw-card {
+display: flex;
+align-items: center;
+gap: 14px;
+
+margin-bottom: 14px;
+padding: 16px 18px;
+
+border-radius: 22px;
+min-height: 88px;
+}
+
+.pw-card__media {
+width: 56px;
+height: 56px;
+border-radius: 14px;
+
+background: rgba(16, 20, 16, 0.08);
+border: 1.5px dashed rgba(13, 82, 44, 0.28);
+
+display: grid;
+place-items: center;
+
+flex-shrink: 0;
+
+color: var(--pw-green-deep);
+overflow: hidden;
+}
+
+.pw-card__media ion-icon {
+font-size: 1.55rem;
+opacity: 0.7;
+}
+
+.pw-card__media span {
+font-size: 0.62rem;
+font-weight: 700;
+letter-spacing: 0.04em;
+text-transform: uppercase;
+opacity: 0.65;
+}
+
+.pw-card__body {
+flex: 1;
+min-width: 0;
+text-align: center;
+}
+
+.pw-card__name {
+margin: 0;
+color: var(--pw-green-deep);
+font-size: 1rem;
+font-weight: 800;
+letter-spacing: 0.04em;
+text-transform: uppercase;
+}
+
+.pw-card__limit {
+margin: 6px 0 0;
+color: var(--pw-green-deep);
+font-size: 0.78rem;
+font-weight: 600;
+letter-spacing: 0.03em;
+text-transform: uppercase;
+}
+
+.pw-card--goal {
+background: var(--pw-gray);
+}
+
+.pw-card--emergency {
+background: var(--pw-pink);
+}
+
+.pw-card--shopping {
+background: #e1c1b3;
+}
+
+.pw-card--transport {
+background: var(--pw-rose);
+}
+
+.pw-card--bills {
+background: var(--pw-taupe);
+}
+
+.pw-card--goal .pw-card__name {
+text-transform: none;
+font-size: 0.95rem;
+}
+
+.pw-card--goal .pw-card__limit {
+color: var(--pw-green-deep);
+font-weight: 800;
+font-size: 0.9rem;
+}
+
+/* =========================================================
+CLICKABLE CATEGORY CARDS
+========================================================= */
+
+.pw-card--clickable {
+position: relative;
+cursor: pointer;
+
+transition:
+transform 0.18s ease,
+box-shadow 0.18s ease,
+filter 0.18s ease;
+}
+
+.pw-card--clickable:hover {
+transform: translateY(-2px) scale(1.01);
+box-shadow: 0 14px 32px rgba(13, 82, 44, 0.18);
+filter: brightness(0.97);
+}
+
+.pw-card--clickable:active {
+transform: scale(0.98);
+filter: brightness(0.93);
+}
+
+.pw-card__chevron {
+font-size: 1.5rem;
+color: var(--pw-green-deep);
+opacity: 0.45;
+flex-shrink: 0;
+line-height: 1;
+margin-right: 4px;
+}
+
+/* =========================================================
+GENERAL ACTION BUTTONS
+========================================================= */
+
+.pw-actions {
+display: grid;
+gap: 10px;
+margin-top: 8px;
+}
+
+.pw-actions ion-button {
+--background: var(--pw-green-deep);
+--background-activated: var(--pw-green-mid);
+--border-radius: 14px;
+--box-shadow: none;
+--color: var(--pw-white);
+
+font-weight: 700;
+height: 46px;
+margin: 0;
+text-transform: none;
+}
+
+.pw-actions ion-button.secondary {
+--background: var(--pw-white);
+--color: var(--pw-green-deep);
+
+border: 1.5px solid var(--pw-green-deep);
+}
+
+/* =========================================================
+MODAL OVERLAY
+========================================================= */
+
+.pw-modal-overlay {
+position: fixed;
+inset: 0;
+z-index: 500;
+
+background: rgba(0, 0, 0, 0.4);
+
+backdrop-filter: blur(8px);
+-webkit-backdrop-filter: blur(8px);
+
+animation: pw-overlay-in 0.22s ease forwards;
+
+pointer-events: none;
+}
+
+@keyframes pw-overlay-in {
+from {
+opacity: 0;
+}
+
+to {
+opacity: 1;
+}
+}
+
+/* =========================================================
+BASE MODAL
+========================================================= */
+
+.pw-modal {
+--height: auto;
+--border-radius: 24px 24px 0 0;
+--backdrop-opacity: 0.45;
+}
+
+.pw-modal::part(backdrop) {
+background: transparent !important;
+opacity: 0 !important;
+}
+
+/* =========================================================
+CATEGORY + SAVINGS MODALS
+========================================================= */
+
+.pw-modal--category,
+.pw-modal--savings {
+--backdrop-opacity: 0;
+}
+
+.pw-modal--category::part(content),
+.pw-modal--savings::part(content) {
+position: absolute !important;
+
+top: 50% !important;
+left: 50% !important;
+
+transform: translate(-50%, -50%) !important;
+
+width: 90% !important;
+max-width: 460px !important;
+
+height: fit-content !important;
+min-height: 0 !important;
+max-height: 90vh !important;
+
+border-radius: 22px !important;
+
+box-shadow:
+0 16px 56px rgba(0, 0, 0, 0.35) !important;
+
+background: #9dbfb4 !important;
+overflow: hidden !important;
+}
+
+/* =========================================================
+ADD CATEGORY / SAVINGS SHEET
+========================================================= */
+
+.pwm-sheet {
+background: #9dbfb4;
+border-radius: 22px;
+
+padding-bottom: env(
+safe-area-inset-bottom,
+20px
+);
+
+overflow: hidden;
+
+animation:
+pwm-pop-in
+0.28s
+cubic-bezier(0.34, 1.56, 0.64, 1)
+both;
+}
+
+@keyframes pwm-pop-in {
+from {
+opacity: 0;
+transform:
+scale(0.86)
+translateY(8px);
+}
+
+to {
+opacity: 1;
+transform:
+scale(1)
+translateY(0);
+}
+}
+
+/* =========================================================
+MODAL HEADER
+========================================================= */
+
+.pwm-header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+
+padding: 22px 20px 14px;
+}
+
+.pwm-title {
+margin: 0;
+
+color: var(--pw-green-deep);
+
+font-family: "Outfit", sans-serif;
+font-size: 1.05rem;
+font-weight: 800;
+letter-spacing: 0.02em;
+line-height: 1.25;
+
+flex: 1;
+}
+
+.pwm-close {
+display: grid;
+place-items: center;
+
+width: 32px;
+height: 32px;
+padding: 0;
+
+border: none;
+border-radius: 50%;
+
+background: rgba(13, 82, 44, 0.12);
+color: var(--pw-green-deep);
+
+cursor: pointer;
+
+font-size: 1.1rem;
+flex-shrink: 0;
+
+transition:
+background 0.15s ease,
+transform 0.15s ease;
+}
+
+.pwm-close:hover {
+background: rgba(13, 82, 44, 0.22);
+}
+
+.pwm-close:active {
+transform: scale(0.92);
+}
+
+/* =========================================================
+MODAL FORM BODY
+========================================================= */
+
+.pwm-body {
+padding: 0 20px 24px;
+}
+
+.pwm-field {
+margin-bottom: 14px;
+}
+
+.pwm-input {
+--background: #ffffff;
+--border-radius: 12px;
+--border-color: transparent;
+--border-width: 0;
+--highlight-color-focused: var(--pw-green-deep);
+
+--padding-start: 14px;
+--padding-end: 14px;
+--padding-top: 10px;
+--padding-bottom: 10px;
+
+--color: var(--pw-ink);
+--placeholder-color: var(--pw-muted);
+--label-color: var(--pw-green-deep);
+
+border-radius: 12px;
+
+box-shadow:
+0 2px 8px rgba(13, 82, 44, 0.1);
+
+min-height: 52px;
+}
+
+/* =========================================================
+CATEGORY COLOR SWATCHES
+========================================================= */
+
+.pwm-swatch-label {
+margin: 6px 0 10px;
+
+color: var(--pw-green-deep);
+
+font-size: 0.82rem;
+font-weight: 600;
+letter-spacing: 0.04em;
+
+text-align: center;
+}
+
+.pwm-swatches {
+display: flex;
+flex-wrap: wrap;
+align-items: flex-start;
+justify-content: center;
+
+gap: 10px 12px;
+margin-bottom: 22px;
+}
+
+.pwm-swatch {
+width: 40px;
+height: 40px;
+
+border-radius: 50%;
+border: 2.5px solid transparent;
+
+cursor: pointer;
+
+transition:
+transform 0.18s ease,
+border-color 0.18s ease,
+box-shadow 0.18s ease;
+
+box-shadow:
+0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+.pwm-swatch:hover {
+transform: scale(1.1);
+}
+
+.pwm-swatch.is-selected {
+border-color: var(--pw-green-deep);
+
+box-shadow:
+0 0 0 3px rgba(13, 82, 44, 0.25),
+0 2px 6px rgba(0, 0, 0, 0.18);
+
+transform: scale(1.12);
+}
+
+.pwm-swatch-wrap {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 6px;
+border: none;
+background: transparent;
+padding: 0;
+cursor: pointer;
+font-family: inherit;
+}
+
+.pwm-swatch-wrap .pwm-swatch {
+display: block;
+margin: 0;
+}
+
+.pwm-swatch-name {
+color: var(--pw-green-deep);
+font-size: 0.68rem;
+font-weight: 700;
+letter-spacing: 0.02em;
+}
+
+.pwm-chips {
+display: flex;
+flex-wrap: wrap;
+justify-content: center;
+gap: 8px;
+margin: 0 0 16px;
+}
+
+.pwm-chip {
+border: none;
+border-radius: 999px;
+padding: 8px 12px;
+background: var(--pw-mint);
+color: var(--pw-green-deep);
+font-weight: 700;
+font-family: inherit;
+font-size: 0.78rem;
+cursor: pointer;
+box-shadow: 0 2px 6px rgba(13, 82, 44, 0.12);
+}
+
+.pwm-chip:hover {
+transform: scale(1.04);
+}
+
+.pwm-chip.is-selected {
+background: var(--pw-green-deep);
+color: var(--pw-white);
+}
+
+/* =========================================================
+MODAL ACTION BUTTONS
+========================================================= */
+
+.pwm-actions {
+display: grid;
+gap: 10px;
+margin-top: 4px;
+}
+
+.pwm-btn {
+--background: var(--pw-green-deep);
+--background-activated: var(--pw-green-mid);
+--background-hover: var(--pw-green-mid);
+--border-radius: 14px;
+--box-shadow: none;
+--color: var(--pw-white);
+
+font-weight: 700;
+height: 48px;
+margin: 0;
+
+text-transform: none;
+letter-spacing: 0.03em;
+}
+
+.pwm-btn--ghost {
+--background: transparent;
+--background-activated: rgba(13, 82, 44, 0.08);
+--background-hover: rgba(13, 82, 44, 0.08);
+
+--color: var(--pw-green-deep);
+--border-color: var(--pw-green-deep);
+--border-width: 1.5px;
+--border-style: solid;
+}
+
+/* =========================================================
+CATEGORY DETAIL MODAL
+========================================================= */
+
+.pw-modal--detail {
+--height: auto;
+--max-height: 88vh;
+--border-radius: 24px;
+--backdrop-opacity: 0.5;
+
+--box-shadow:
+0 8px 40px rgba(0, 0, 0, 0.22);
+
+--width: 92%;
+}
+
+/* =========================================================
+CATEGORY DETAIL SHEET
+========================================================= */
+
+.pwcd-sheet {
+max-height: 88vh;
+
+display: flex;
+flex-direction: column;
+
+padding-bottom:
+env(
+safe-area-inset-bottom,
+20px
+);
+
+overflow-y: auto;
+
+border-radius: 24px;
+}
+
+/* =========================================================
+CATEGORY DETAIL COLORS
+========================================================= */
+
+.pwcd-sheet--emergency {
+background: #ffd4d4;
+}
+
+.pwcd-sheet--shopping {
+background: #edd5c5;
+}
+
+.pwcd-sheet--transport {
+background: #e8bebe;
+}
+
+.pwcd-sheet--bills {
+background: #ddd0cc;
+}
+
+.pwcd-sheet--goal {
+background: #d8e2ea;
+}
+
+/* =========================================================
+CATEGORY DETAIL HEADER
+========================================================= */
+
+.pwcd-header {
+display: flex;
+align-items: flex-start;
+justify-content: space-between;
+
+padding: 24px 20px 14px;
+
+gap: 12px;
+}
+
+.pwcd-title {
+margin: 0 0 4px;
+
+color: var(--pw-green-deep);
+
+font-family: "Outfit", sans-serif;
+font-size: 1.15rem;
+font-weight: 900;
+
+letter-spacing: 0.06em;
+line-height: 1.2;
+}
+
+.pwcd-subtitle {
+margin: 0;
+
+color: var(--pw-green-deep);
+
+font-size: 0.78rem;
+font-weight: 700;
+
+letter-spacing: 0.05em;
+text-transform: uppercase;
+
+opacity: 0.75;
+}
+
+/* =========================================================
+CATEGORY DETAIL HEADER ACTIONS
+========================================================= */
+
+.pwcd-header-actions {
+display: flex;
+align-items: center;
+gap: 8px;
+
+flex-shrink: 0;
+}
+
+/* =========================================================
+EDIT CATEGORY BUTTON
+========================================================= */
+
+.pwcd-category-edit-btn {
+height: 36px;
+padding: 0 14px;
+
+border: 1.5px solid var(--pw-green-deep);
+border-radius: 10px;
+
+background: #ffffff;
+color: var(--pw-green-deep);
+
+font-family: "Outfit", sans-serif;
+font-size: 0.72rem;
+font-weight: 800;
+
+cursor: pointer;
+
+transition:
+background 0.2s ease,
+color 0.2s ease,
+transform 0.15s ease,
+box-shadow 0.2s ease;
+}
+
+.pwcd-category-edit-btn:hover {
+background: var(--pw-green-deep);
+color: var(--pw-white);
+
+transform: translateY(-1px);
+
+box-shadow:
+0 5px 12px rgba(13, 82, 44, 0.18);
+}
+
+.pwcd-category-edit-btn:active {
+transform: scale(0.95);
+}
+
+/* =========================================================
+DELETE CATEGORY BUTTON
+========================================================= */
+
+.pwcd-category-delete-btn {
+height: 36px;
+padding: 0 14px;
+
+border: 1.5px solid #b84d4d;
+border-radius: 10px;
+
+background: #ffffff;
+color: #b84d4d;
+
+font-family: "Outfit", sans-serif;
+font-size: 0.72rem;
+font-weight: 800;
+
+cursor: pointer;
+
+transition:
+background 0.2s ease,
+color 0.2s ease,
+transform 0.15s ease,
+box-shadow 0.2s ease;
+}
+
+.pwcd-category-delete-btn:hover {
+background: #b84d4d;
+color: #ffffff;
+
+transform: translateY(-1px);
+
+box-shadow:
+0 5px 12px rgba(184, 77, 77, 0.18);
+}
+
+.pwcd-category-delete-btn:active {
+transform: scale(0.95);
+}
+
+/* =========================================================
+CATEGORY DETAIL CLOSE BUTTON
+========================================================= */
+
+.pwcd-header-actions .pwm-close {
+width: 36px;
+height: 36px;
+
+margin-left: 2px;
+
+display: grid;
+place-items: center;
+
+border: none;
+border-radius: 10px;
+
+background: rgba(13, 82, 44, 0.08);
+color: var(--pw-green-deep);
+
+cursor: pointer;
+
+transition:
+background 0.2s ease,
+color 0.2s ease,
+transform 0.15s ease;
+}
+
+.pwcd-header-actions .pwm-close ion-icon {
+font-size: 1.25rem;
+}
+
+.pwcd-header-actions .pwm-close:hover {
+background: var(--pw-green-deep);
+color: var(--pw-white);
+
+transform: rotate(4deg);
+}
+
+.pwcd-header-actions .pwm-close:active {
+transform: scale(0.92);
+}
+
+/* =========================================================
+CATEGORY EDIT FORM
+========================================================= */
+
+.pwcd-category-edit-form {
+margin: 4px 20px 20px;
+padding: 18px;
+
+border-radius: 18px;
+
+background: rgba(255, 255, 255, 0.65);
+border: 1px solid rgba(13, 82, 44, 0.1);
+
+box-shadow:
+0 6px 18px rgba(13, 82, 44, 0.08);
+}
+
+.pwcd-edit-field {
+margin-bottom: 16px;
+}
+
+.pwcd-edit-category-input {
+--background: #ffffff;
+
+--border-color: rgba(13, 82, 44, 0.2);
+--border-width: 1px;
+--border-style: solid;
+--border-radius: 12px;
+
+--color: var(--pw-green-deep);
+--highlight-color-focused: var(--pw-green-deep);
+
+--padding-start: 14px;
+--padding-end: 14px;
+--padding-top: 10px;
+--padding-bottom: 10px;
+
+border-radius: 12px;
+
+min-height: 52px;
+}
+
+.pwcd-edit-color-label {
+margin: 0 0 10px;
+
+color: var(--pw-green-deep);
+
+font-family: "Outfit", sans-serif;
+font-size: 0.78rem;
+font-weight: 800;
+}
+
+.pwcd-edit-info {
+display: flex;
+align-items: center;
+justify-content: space-between;
+
+gap: 12px;
+
+margin: 4px 0 18px;
+padding: 12px 14px;
+
+border-radius: 12px;
+
+background: rgba(13, 82, 44, 0.06);
+
+color: var(--pw-green-deep);
+
+font-family: "Outfit", sans-serif;
+font-size: 0.75rem;
+}
+
+.pwcd-edit-info strong {
+font-size: 0.82rem;
+}
+
+.pwcd-edit-category-actions {
+display: grid;
+grid-template-columns: 1fr 1fr;
+
+gap: 10px;
+
+margin-top: 20px;
+}
+
+.pwcd-save-category-btn,
+.pwcd-cancel-category-btn {
+height: 44px;
+
+border-radius: 12px;
+
+font-family: "Outfit", sans-serif;
+font-size: 0.78rem;
+font-weight: 800;
+
+cursor: pointer;
+
+transition:
+background 0.2s ease,
+color 0.2s ease,
+transform 0.15s ease,
+box-shadow 0.2s ease;
+}
+
+.pwcd-save-category-btn {
+border: 1.5px solid var(--pw-green-deep);
+
+background: var(--pw-green-deep);
+color: var(--pw-white);
+}
+
+.pwcd-save-category-btn:hover {
+background: var(--pw-green-mid);
+
+box-shadow:
+0 6px 14px rgba(13, 82, 44, 0.18);
+
+transform: translateY(-1px);
+}
+
+.pwcd-save-category-btn:active {
+transform: scale(0.97);
+}
+
+.pwcd-cancel-category-btn {
+border: 1.5px solid rgba(13, 82, 44, 0.25);
+
+background: #ffffff;
+color: var(--pw-green-deep);
+}
+
+.pwcd-cancel-category-btn:hover {
+background: var(--pw-mint);
+transform: translateY(-1px);
+}
+
+.pwcd-cancel-category-btn:active {
+transform: scale(0.97);
+}
+
+/* =========================================================
+ADD EXPENSE
+========================================================= */
+
+.pwcd-add-row {
+display: flex;
+align-items: center;
+
+gap: 10px;
+
+padding: 0 20px 18px;
+}
+
+.pwcd-add-input {
+flex: 1;
+
+--background: rgba(255, 255, 255, 0.75);
+--border-radius: 14px;
+--border-color: transparent;
+--border-width: 0;
+--highlight-color-focused: var(--pw-green-deep);
+
+--padding-start: 16px;
+--padding-end: 16px;
+--padding-top: 12px;
+--padding-bottom: 12px;
+
+--placeholder-color: var(--pw-muted);
+--placeholder-opacity: 0.8;
+--color: var(--pw-ink);
+
+border-radius: 14px;
+
+font-weight: 700;
+font-size: 0.88rem;
+letter-spacing: 0.06em;
+text-transform: uppercase;
+
+min-height: 50px;
+
+box-shadow:
+0 2px 8px rgba(13, 82, 44, 0.1);
+}
+
+.pwcd-add-btn {
+width: 46px;
+height: 46px;
+
+border-radius: 14px;
+border: none;
+
+background: var(--pw-green-deep);
+color: #fff;
+
+font-size: 1.6rem;
+font-weight: 300;
+line-height: 1;
+
+cursor: pointer;
+flex-shrink: 0;
+
+transition:
+background 0.15s ease,
+transform 0.12s ease;
+
+display: grid;
+place-items: center;
+}
+
+.pwcd-add-btn:hover {
+background: var(--pw-green-mid);
+}
+
+.pwcd-add-btn:active {
+transform: scale(0.94);
+}
+
+/* =========================================================
+CATEGORY DETAIL STATS
+========================================================= */
+
+.pwcd-stats {
+padding: 0 20px 28px;
+flex: 1;
+}
+
+.pwcd-stat-label {
+margin: 12px 0 8px;
+
+color: var(--pw-green-deep);
+
+font-size: 0.92rem;
+font-weight: 700;
+letter-spacing: 0.02em;
+}
+
+.pwcd-pill {
+background: rgba(216, 164, 164, 0.65);
+
+border-radius: 50px;
+
+padding: 12px 20px;
+
+text-align: center;
+
+color: var(--pw-green-deep);
+
+font-size: 1.05rem;
+font-weight: 800;
+letter-spacing: 0.03em;
+
+box-shadow:
+inset 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.pwcd-pill--low {
+background: rgba(255, 80, 80, 0.2);
+color: #b01010;
+}
+
+/* =========================================================
+WARNING
+========================================================= */
+
+.pwcd-warning {
+display: flex;
+align-items: center;
+justify-content: center;
+
+gap: 8px;
+
+margin: 22px 20px 10px;
+padding: 14px 20px;
+
+border-radius: 14px;
+
+background: #e83232;
+color: #fff;
+
+font-size: 0.82rem;
+font-weight: 800;
+letter-spacing: 0.1em;
+text-transform: uppercase;
+
+animation:
+pwcd-pulse
+1.8s
+ease-in-out
+infinite;
+}
+
+@keyframes pwcd-pulse {
+0%,
+100% {
+opacity: 1;
+}
+
+50% {
+opacity: 0.75;
+}
+}
+
+/* =========================================================
+EXPENSE HISTORY
+========================================================= */
+
+.pwcd-history {
+padding: 0 20px 18px;
+}
+
+.pwcd-history-title {
+margin: 4px 0 10px;
+
+color: var(--pw-green-deep);
+
+font-size: 0.92rem;
+font-weight: 800;
+letter-spacing: 0.04em;
+text-transform: uppercase;
+}
+
+.pwcd-history-empty {
+margin: 0;
+padding: 14px 16px;
+
+border-radius: 14px;
+
+background: rgba(255, 255, 255, 0.42);
+
+color: var(--pw-green-deep);
+
+font-size: 0.78rem;
+font-weight: 600;
+
+text-align: center;
+
+opacity: 0.75;
+}
+
+.pwcd-history-list {
+display: flex;
+flex-direction: column;
+gap: 9px;
+}
+
+/* =========================================================
+EXPENSE HISTORY ITEM
+========================================================= */
+
+.pwcd-history-item {
+display: flex;
+align-items: center;
+justify-content: space-between;
+
+width: 100%;
+box-sizing: border-box;
+
+gap: 12px;
+padding: 11px 13px;
+
+border-radius: 14px;
+
+background: rgba(255, 255, 255, 0.58);
+
+box-shadow:
+0 2px 7px rgba(13, 82, 44, 0.08);
+
+transition:
+background 0.15s ease,
+transform 0.15s ease;
+}
+
+.pwcd-history-item:hover {
+background: rgba(255, 255, 255, 0.75);
+transform: translateY(-1px);
+}
+
+/* =========================================================
+EXPENSE INFORMATION
+========================================================= */
+
+.pwcd-history-info {
+flex: 1;
+min-width: 0;
+
+display: flex;
+flex-direction: column;
+justify-content: center;
+}
+
+.pwcd-history-info strong {
+display: block;
+
+margin: 0;
+
+color: var(--pw-green-deep);
+
+font-size: 0.95rem;
+font-weight: 800;
+}
+
+.pwcd-history-info small {
+display: block;
+
+margin-top: 3px;
+
+color: var(--pw-green-deep);
+
+font-size: 0.68rem;
+font-weight: 500;
+
+opacity: 0.65;
+}
+
+/* =========================================================
+EDIT + DELETE ACTIONS
+========================================================= */
+
+.pwcd-history-actions {
+display: flex;
+align-items: center;
+justify-content: flex-end;
+
+gap: 6px;
+
+flex-shrink: 0;
+white-space: nowrap;
+}
+
+.pwcd-edit-btn,
+.pwcd-delete-btn {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+
+min-width: 48px;
+height: 32px;
+padding: 0 10px;
+
+border-radius: 9px;
+
+font-family: inherit;
+font-size: 0.7rem;
+font-weight: 800;
+
+cursor: pointer;
+white-space: nowrap;
+
+transition:
+background 0.15s ease,
+color 0.15s ease,
+transform 0.12s ease;
+}
+
+/* =========================================================
+EDIT BUTTON
+========================================================= */
+
+.pwcd-edit-btn {
+border: 1.5px solid var(--pw-green-deep);
+
+background: transparent;
+color: var(--pw-green-deep);
+}
+
+.pwcd-edit-btn:hover {
+background: var(--pw-green-deep);
+color: #fff;
+}
+
+/* =========================================================
+DELETE BUTTON
+========================================================= */
+
+.pwcd-delete-btn {
+border: 1.5px solid #a94b4b;
+
+background: transparent;
+color: #a94b4b;
+}
+
+.pwcd-delete-btn:hover {
+background: #a94b4b;
+color: #fff;
+}
+
+.pwcd-edit-btn:active,
+.pwcd-delete-btn:active {
+transform: scale(0.94);
+}
+
+/* =========================================================
+INLINE EXPENSE EDIT MODE
+========================================================= */
+
+.pwcd-edit-row {
+display: flex;
+align-items: center;
+
+width: 100%;
+gap: 8px;
+}
+
+.pwcd-edit-input {
+flex: 1;
+min-width: 0;
+
+--background: #ffffff;
+
+--border-radius: 10px;
+--border-color: transparent;
+--border-width: 0;
+
+--highlight-color-focused: var(--pw-green-deep);
+
+--padding-start: 12px;
+--padding-end: 12px;
+
+--color: var(--pw-ink);
+--placeholder-color: var(--pw-muted);
+
+min-height: 40px;
+
+border-radius: 10px;
+
+font-size: 0.85rem;
+font-weight: 700;
+
+box-shadow:
+0 2px 6px rgba(13, 82, 44, 0.08);
+}
+
+/* =========================================================
+SAVE + CANCEL EXPENSE BUTTONS
+========================================================= */
+
+.pwcd-save-btn,
+.pwcd-cancel-btn {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+
+height: 32px;
+padding: 0 10px;
+
+border: none;
+border-radius: 9px;
+
+font-family: inherit;
+font-size: 0.7rem;
+font-weight: 800;
+
+cursor: pointer;
+white-space: nowrap;
+
+transition:
+background 0.15s ease,
+color 0.15s ease,
+transform 0.12s ease;
+}
+
+.pwcd-save-btn {
+background: var(--pw-green-deep);
+color: #fff;
+}
+
+.pwcd-save-btn:hover {
+background: var(--pw-green-mid);
+}
+
+.pwcd-cancel-btn {
+background: rgba(13, 82, 44, 0.12);
+color: var(--pw-green-deep);
+}
+
+.pwcd-cancel-btn:hover {
+background: rgba(13, 82, 44, 0.2);
+}
+
+.pwcd-save-btn:active,
+.pwcd-cancel-btn:active {
+transform: scale(0.94);
+}
+
+/* =========================================================
+MONTHLY SUMMARY MODAL
+========================================================= */
+
+.pw-modal--summary {
+--height: auto;
+--max-height: 88vh;
+--border-radius: 24px;
+--backdrop-opacity: 0;
+--width: 88%;
+
+--box-shadow:
+0 12px 48px rgba(0, 0, 0, 0.28);
+}
+
+.pwsum-sheet {
+position: relative;
+
+background: var(--pw-green-soft);
+
+border-radius: 24px;
+
+padding: 28px 24px 32px;
+
+overflow: hidden;
+}
+
+.pwsum-close {
+position: absolute;
+
+top: 16px;
+right: 16px;
+
+background: rgba(255, 255, 255, 0.25) !important;
+color: #fff !important;
+}
+
+.pwsum-title {
+margin: 0 0 24px;
+
+color: #fff;
+
+font-family: "Outfit", sans-serif;
+font-size: 2rem;
+font-weight: 900;
+
+letter-spacing: 0.06em;
+line-height: 1.15;
+
+text-align: center;
+text-transform: uppercase;
+}
+
+.pwsum-body {
+display: flex;
+flex-direction: column;
+gap: 0;
+}
+
+.pwsum-label {
+margin: 14px 0 8px;
+
+color: var(--pw-green-deep);
+
+font-size: 0.92rem;
+font-weight: 700;
+letter-spacing: 0.02em;
+
+text-align: center;
+}
+
+.pwsum-pill {
+background: rgba(255, 255, 255, 0.55);
+
+border-radius: 50px;
+
+padding: 13px 20px;
+
+text-align: center;
+
+color: var(--pw-green-deep);
+
+font-size: 1.05rem;
+font-weight: 800;
+letter-spacing: 0.03em;
+
+box-shadow:
+inset 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.pwsum-pill--savings {
+background: rgba(255, 255, 255, 0.72);
+}
+
+.pwsum-divider {
+height: 1.5px;
+
+background: rgba(255, 255, 255, 0.35);
+
+margin: 20px 0 6px;
+
+border-radius: 2px;
+}
+
+/* =========================================================
+DASHBOARD OVERVIEW
+========================================================= */
+
+.pwo-shell {
+min-height: 100%;
+
+padding: 18px 18px 36px;
+
+background:
+radial-gradient(
+circle at top right,
+rgba(119, 187, 162, 0.28),
+transparent 42%
+),
+linear-gradient(
+180deg,
+var(--pw-mint) 0%,
+var(--pw-white) 38%,
+var(--pw-white) 100%
+);
+}
+
+/* =========================================================
+DASHBOARD APP BAR
+========================================================= */
+
+.pwo-appbar {
+display: flex;
+align-items: center;
+
+gap: 12px;
+margin-bottom: 22px;
+
+color: var(--pw-green-deep);
+}
+
+.pwo-appbar__brand {
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.pwo-appbar h1 {
+margin: 0;
+
+font-family: "Fraunces", Georgia, serif;
+font-size: 1.15rem;
+font-weight: 800;
+letter-spacing: 0.08em;
+
+color: var(--pw-green-deep);
+}
+
+.pwo-back {
+width: 40px;
+height: 40px;
+padding: 0;
+
+display: grid;
+place-items: center;
+
+border: none;
+border-radius: 50%;
+
+background: rgba(13, 82, 44, 0.08);
+color: var(--pw-green-deep);
+
+cursor: pointer;
+
+transition:
+background 0.15s ease,
+transform 0.12s ease;
+}
+
+.pwo-back ion-icon {
+font-size: 1.3rem;
+}
+
+.pwo-back:hover {
+background: rgba(13, 82, 44, 0.15);
+}
+
+.pwo-back:active {
+transform: scale(0.92);
+}
+
+/* =========================================================
+DASHBOARD TITLE
+========================================================= */
+
+.pwo-page-title {
+margin: 0;
+
+color: var(--pw-green-deep);
+
+font-family: "Fraunces", Georgia, serif;
+font-size: 1.65rem;
+font-weight: 800;
+
+letter-spacing: 0.02em;
+}
+
+.pwo-page-subtitle {
+margin: 5px 0 22px;
+
+color: var(--pw-muted);
+
+font-size: 0.82rem;
+font-weight: 600;
+
+letter-spacing: 0.06em;
+text-transform: uppercase;
+}
+
+/* =========================================================
+DASHBOARD SUMMARY CARDS
+========================================================= */
+
+.pwo-stats {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+
+gap: 10px;
+margin-bottom: 24px;
+}
+
+.pwo-stat-card {
+min-width: 0;
+
+padding: 16px 12px;
+
+border-radius: 18px;
+
+box-shadow:
+0 5px 16px rgba(13, 82, 44, 0.08);
+
+text-align: center;
+}
+
+.pwo-stat--budget {
+background: #d8e2ea;
+}
+
+.pwo-stat--spent {
+background: #edd5c5;
+}
+
+.pwo-stat--remaining {
+background: #d5e5dc;
+}
+
+.pwo-stat-icon {
+display: block;
+
+margin: 0 auto 8px;
+
+color: var(--pw-green-deep);
+font-size: 1.35rem;
+}
+
+.pwo-stat-label {
+margin: 0 0 5px;
+
+color: var(--pw-green-deep);
+
+font-size: 0.68rem;
+font-weight: 800;
+
+letter-spacing: 0.04em;
+text-transform: uppercase;
+}
+
+.pwo-stat-value {
+margin: 0;
+
+color: var(--pw-green-deep);
+
+font-size: 0.9rem;
+font-weight: 900;
+}
+
+/* =========================================================
+DASHBOARD SECTIONS
+========================================================= */
+
+.pwo-section {
+margin-bottom: 24px;
+padding: 20px 18px;
+
+background: rgba(255, 255, 255, 0.9);
+
+border:
+1px solid rgba(13, 82, 44, 0.08);
+
+border-radius: 22px;
+
+box-shadow:
+0 6px 20px rgba(13, 82, 44, 0.07);
+}
+
+.pwo-section-title {
+display: flex;
+align-items: center;
+
+gap: 8px;
+
+margin: 0 0 18px;
+
+color: var(--pw-green-deep);
+
+font-size: 0.95rem;
+font-weight: 900;
+
+letter-spacing: 0.04em;
+text-transform: uppercase;
+}
+
+.pwo-section-title ion-icon {
+font-size: 1.15rem;
+}
+
+/* =========================================================
+FINANCIAL OVERVIEW
+========================================================= */
+
+.pwo-financial-overview {
+padding-bottom: 20px;
+}
+
+.pwo-financial-grid {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+
+gap: 12px;
+}
+
+.pwo-financial-card {
+display: flex;
+align-items: center;
+
+gap: 12px;
+
+min-width: 0;
+
+padding: 16px 14px;
+
+border-radius: 18px;
+
+box-shadow:
+0 4px 12px rgba(13, 82, 44, 0.07);
+}
+
+.pwo-financial-card--savings {
+background: #d8e2ea;
+}
+
+.pwo-financial-card--budget {
+background: #d5e5dc;
+}
+
+.pwo-financial-icon {
+width: 42px;
+height: 42px;
+
+flex-shrink: 0;
+
+display: grid;
+place-items: center;
+
+border-radius: 13px;
+
+background: rgba(255, 255, 255, 0.55);
+
+color: var(--pw-green-deep);
+}
+
+.pwo-financial-icon ion-icon {
+font-size: 1.25rem;
+}
+
+.pwo-financial-content {
+min-width: 0;
+}
+
+.pwo-financial-label {
+margin: 0 0 5px;
+
+color: var(--pw-green-deep);
+
+font-size: 0.7rem;
+font-weight: 800;
+
+letter-spacing: 0.03em;
+text-transform: uppercase;
+}
+
+.pwo-financial-value {
+margin: 0;
+
+color: var(--pw-green-deep);
+
+font-size: 1rem;
+font-weight: 900;
+
+word-break: break-word;
+}
+
+.pwo-financial-description {
+margin: 5px 0 0;
+
+color: var(--pw-green-deep);
+
+font-size: 0.65rem;
+font-weight: 600;
+
+line-height: 1.35;
+
+opacity: 0.7;
+}
+
+/* =========================================================
+BUDGET PROGRESS
+========================================================= */
+
+.pwo-budget-progress {
+margin-top: 18px;
+
+padding: 15px 16px;
+
+border-radius: 17px;
+
+background: rgba(13, 82, 44, 0.055);
+}
+
+.pwo-budget-progress__head {
+display: flex;
+align-items: center;
+justify-content: space-between;
+
+gap: 10px;
+
+margin-bottom: 9px;
+
+color: var(--pw-green-deep);
+
+font-size: 0.76rem;
+font-weight: 700;
+}
+
+.pwo-budget-progress__head strong {
+font-size: 0.82rem;
+font-weight: 900;
+}
+
+.pwo-budget-progress__track {
+width: 100%;
+height: 11px;
+
+overflow: hidden;
+
+border-radius: 50px;
+
+background: rgba(13, 82, 44, 0.12);
+}
+
+.pwo-budget-progress__fill {
+height: 100%;
+
+border-radius: inherit;
+
+background: var(--pw-green-deep);
+
+transition:
+width 0.35s ease;
+}
+
+.pwo-budget-progress__fill--danger {
+background: #c94b4b;
+}
+
+.pwo-budget-progress__amounts {
+display: flex;
+align-items: center;
+justify-content: space-between;
+
+gap: 10px;
+
+margin-top: 8px;
+
+color: var(--pw-muted);
+
+font-size: 0.65rem;
+font-weight: 600;
+}
+
+/* =========================================================
+DONUT CHART
+========================================================= */
+
+.pwo-donut-row {
+display: flex;
+align-items: center;
+
+gap: 22px;
+}
+
+.pwo-donut-wrap {
+position: relative;
+
+width: 150px;
+height: 150px;
+
+flex-shrink: 0;
+}
+
+.pwo-donut {
+width: 100%;
+height: 100%;
+
+transform: rotate(-90deg);
+}
+
+.pwo-donut__segment {
+transition:
+stroke-dasharray 0.4s ease,
+stroke-dashoffset 0.4s ease;
+}
+
+.pwo-donut-center {
+position: absolute;
+inset: 0;
+
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+
+text-align: center;
+}
+
+.pwo-donut-pct {
+color: var(--pw-green-deep);
+
+font-size: 1.25rem;
+font-weight: 900;
+}
+
+.pwo-donut-sub {
+margin-top: 2px;
+
+color: var(--pw-muted);
+
+font-size: 0.68rem;
+font-weight: 700;
+
+text-transform: uppercase;
+}
+
+/* =========================================================
+DONUT LEGEND
+========================================================= */
+
+.pwo-legend {
+flex: 1;
+
+display: flex;
+flex-direction: column;
+
+gap: 9px;
+}
+
+.pwo-legend-item {
+display: flex;
+align-items: center;
+
+gap: 7px;
+
+min-width: 0;
+}
+
+.pwo-legend-dot {
+width: 10px;
+height: 10px;
+
+flex-shrink: 0;
+
+border-radius: 50%;
+}
+
+.pwo-legend-name {
+flex: 1;
+min-width: 0;
+
+overflow: hidden;
+
+color: var(--pw-green-deep);
+
+font-size: 0.72rem;
+font-weight: 700;
+
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+
+.pwo-legend-pct {
+color: var(--pw-green-deep);
+
+font-size: 0.7rem;
+font-weight: 900;
+}
+
+/* =========================================================
+CATEGORY BREAKDOWN
+========================================================= */
+
+.pwo-progress-item {
+margin-bottom: 17px;
+}
+
+.pwo-progress-item:last-child {
+margin-bottom: 0;
+}
+
+.pwo-progress-head {
+display: flex;
+align-items: center;
+justify-content: space-between;
+
+gap: 10px;
+
+margin-bottom: 7px;
+}
+
+.pwo-progress-name {
+color: var(--pw-green-deep);
+
+font-size: 0.78rem;
+font-weight: 800;
+}
+
+.pwo-progress-amounts {
+color: var(--pw-muted);
+
+font-size: 0.68rem;
+font-weight: 600;
+
+text-align: right;
+}
+
+.pwo-progress-track {
+width: 100%;
+height: 9px;
+
+overflow: hidden;
+
+border-radius: 50px;
+
+background: rgba(13, 82, 44, 0.1);
+}
+
+.pwo-progress-fill {
+height: 100%;
+min-width: 2px;
+
+border-radius: inherit;
+
+transition:
+width 0.35s ease,
+background 0.2s ease;
+}
+
+.pwo-progress--danger {
+background: #c94b4b !important;
+}
+
+.pwo-progress-pct {
+display: block;
+
+margin-top: 5px;
+
+color: var(--pw-green-deep);
+
+font-size: 0.65rem;
+font-weight: 800;
+
+text-align: right;
+}
+
+.pwo-pct--danger {
+color: #b01010;
+}
+
+/* =========================================================
+MONTHLY SPENDING BAR CHART
+========================================================= */
+
+.pwo-barchart {
+display: flex;
+align-items: flex-end;
+justify-content: space-between;
+
+gap: 8px;
+
+height: 190px;
+
+padding-top: 10px;
+}
+
+.pwo-bar-col {
+height: 100%;
+flex: 1;
+
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: flex-end;
+
+min-width: 0;
+}
+
+.pwo-bar-track {
+width: 100%;
+max-width: 32px;
+height: 135px;
+
+display: flex;
+align-items: flex-end;
+
+overflow: hidden;
+
+border-radius:
+10px 10px 5px 5px;
+
+background: rgba(13, 82, 44, 0.08);
+}
+
+.pwo-bar-fill {
+width: 100%;
+min-height: 2px;
+
+border-radius:
+10px 10px 5px 5px;
+
+background: var(--pw-green-deep);
+
+transition:
+height 0.35s ease;
+}
+
+.pwo-bar-label {
+margin-top: 8px;
+
+color: var(--pw-green-deep);
+
+font-size: 0.68rem;
+font-weight: 800;
+}
+
+.pwo-bar-amt {
+margin-top: 3px;
+
+color: var(--pw-muted);
+
+font-size: 0.58rem;
+font-weight: 600;
+
+text-align: center;
+}
+
+/* =========================================================
+DASHBOARD PERIOD / QUICK ADD / ALERTS
+========================================================= */
+
+.pw-greeting {
+margin: 0 0 10px;
+color: var(--pw-green-deep);
+font-size: 0.95rem;
+font-weight: 700;
+}
+
+.pw-period {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 12px;
+margin: 0 0 10px;
+}
+
+.pw-period__center {
+flex: 1;
+text-align: center;
+}
+
+.pw-period__label {
+margin: 0;
+}
+
+.pw-period__nav {
+width: 38px;
+height: 38px;
+border: none;
+border-radius: 12px;
+background: var(--pw-green-deep);
+color: #fff;
+display: grid;
+place-items: center;
+cursor: pointer;
+}
+
+.pw-period__now,
+.pw-roll {
+border: none;
+border-radius: 12px;
+background: rgba(13, 82, 44, 0.1);
+color: var(--pw-green-deep);
+font-weight: 700;
+font-family: inherit;
+padding: 8px 12px;
+margin: 6px 0 14px;
+cursor: pointer;
+}
+
+.pw-roll.is-on {
+background: var(--pw-green-deep);
+color: #fff;
+}
+
+.pw-cash {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 8px;
+margin: 0 0 16px;
+}
+
+.pw-cash > div {
+background: #fff;
+border-radius: 16px;
+padding: 12px 10px;
+box-shadow: 0 4px 12px rgba(13, 82, 44, 0.08);
+}
+
+.pw-cash__label {
+margin: 0;
+font-size: 0.62rem;
+font-weight: 800;
+letter-spacing: 0.06em;
+text-transform: uppercase;
+color: var(--pw-muted);
+}
+
+.pw-cash__value {
+margin: 6px 0 0;
+font-size: 0.82rem;
+font-weight: 800;
+color: var(--pw-green-deep);
+}
+
+.pw-quick,
+.pw-due {
+background: #fff;
+border-radius: 18px;
+padding: 14px;
+margin-bottom: 16px;
+box-shadow: 0 4px 12px rgba(13, 82, 44, 0.08);
+}
+
+.pw-quick__title,
+.pw-due__title {
+margin: 0 0 4px;
+color: var(--pw-green-deep);
+font-size: 0.92rem;
+font-weight: 800;
+text-transform: uppercase;
+}
+
+.pw-quick__hint {
+margin: 0 0 10px;
+font-size: 0.78rem;
+color: var(--pw-muted);
+}
+
+.pw-quick__row {
+margin-bottom: 8px;
+}
+
+.pw-quick__footer {
+display: flex;
+gap: 10px;
+align-items: center;
+}
+
+.pw-select-wrap {
+flex: 1;
+width: 100%;
+min-width: 0;
+height: 50px;
+display: flex;
+align-items: center;
+border-radius: 14px;
+background: rgba(255, 255, 255, 0.9);
+box-shadow: 0 2px 8px rgba(13, 82, 44, 0.1);
+position: relative;
+overflow: hidden;
+}
+
+.pw-select-wrap ion-select,
+.pw-select {
+flex: 1;
+width: 100%;
+min-height: 50px;
+height: 50px;
+border: none;
+border-radius: 14px;
+padding: 0 12px;
+background: transparent;
+color: var(--pw-green-deep);
+font-weight: 700;
+font-family: inherit;
+font-size: 0.88rem;
+letter-spacing: 0.04em;
+text-transform: uppercase;
+box-shadow: none;
+--padding-start: 16px;
+--padding-end: 12px;
+--placeholder-color: var(--pw-muted);
+--placeholder-opacity: 1;
+--highlight-color-focused: var(--pw-green-deep);
+}
+
+.pw-select-popover {
+--max-height: 320px;
+}
+
+.pw-due__item {
+width: 100%;
+display: flex;
+justify-content: space-between;
+border: none;
+background: var(--pw-mint);
+color: var(--pw-green-deep);
+border-radius: 12px;
+padding: 10px 12px;
+margin-top: 8px;
+font-weight: 700;
+font-family: inherit;
+cursor: pointer;
+}
+
+.pw-badge {
+flex-shrink: 0;
+border-radius: 999px;
+padding: 4px 8px;
+font-size: 0.62rem;
+font-weight: 800;
+letter-spacing: 0.04em;
+text-transform: uppercase;
+}
+
+.pw-badge--warn {
+background: #f3d27a;
+color: #5c4300;
+}
+
+.pw-badge--over {
+background: #e84848;
+color: #fff;
+}
+
+.pw-card__remove {
+width: 32px;
+height: 32px;
+border: none;
+border-radius: 50%;
+background: rgba(13, 82, 44, 0.12);
+color: var(--pw-green-deep);
+font-size: 1.2rem;
+cursor: pointer;
+}
+
+.pw-list-row {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 8px;
+margin-bottom: 10px;
+padding: 10px 12px;
+background: rgba(255, 255, 255, 0.7);
+border-radius: 12px;
+color: var(--pw-green-deep);
+font-weight: 700;
+font-size: 0.82rem;
+}
+
+/* NOTE: .pwo-period layout lives in
+   app/pages/dashboard-overview/dashboard-overview.page.scss — it was
+   duplicated here and the two rules disagreed on justify-content,
+   leaving the winner dependent on stylesheet order. */
+
+/* =========================================================
+MOBILE — 600PX
+========================================================= */
+
+@media (max-width: 600px) {
+.pwo-stats {
+gap: 8px;
+}
+
+.pwo-stat-card {
+padding: 14px 8px;
+}
+
+.pwo-stat-label {
+font-size: 0.62rem;
+}
+
+.pwo-stat-value {
+font-size: 0.78rem;
+}
+
+.pwo-financial-grid {
+grid-template-columns: 1fr;
+}
+
+.pwo-financial-card {
+padding: 15px;
+}
+
+.pwo-donut-row {
+gap: 16px;
+}
+
+.pwo-donut-wrap {
+width: 130px;
+height: 130px;
+}
+
+.pwo-barchart {
+height: 175px;
+}
+
+.pwo-bar-track {
+height: 120px;
+}
+
+/* Category detail header */
+.pwcd-header-actions {
+gap: 5px;
+}
+
+.pwcd-category-edit-btn,
+.pwcd-category-delete-btn {
+height: 34px;
+padding: 0 10px;
+font-size: 0.68rem;
+}
+
+.pwcd-header-actions .pwm-close {
+width: 34px;
+height: 34px;
+}
+
+.pwcd-category-edit-form {
+margin-left: 16px;
+margin-right: 16px;
+padding: 16px;
+}
+}
+
+/* =========================================================
+MOBILE — 420PX
+========================================================= */
+
+@media (max-width: 420px) {
+.pw-expenses-shell {
+padding:
+16px
+14px
+30px;
+}
+
+.pw-section-title {
+font-size: 1.2rem;
+}
+
+.pw-card {
+gap: 10px;
+
+
+padding:
+  14px 12px;
+
+min-height: 82px;
+
+
+}
+
+.pw-card__media {
+width: 50px;
+height: 50px;
+}
+
+.pw-card__name {
+font-size: 0.9rem;
+}
+
+.pw-card__limit {
+font-size: 0.7rem;
+}
+
+.pwcd-history-item {
+gap: 8px;
+padding: 10px;
+}
+
+.pwcd-history-actions {
+gap: 4px;
+}
+
+.pwcd-edit-btn,
+.pwcd-delete-btn,
+.pwcd-save-btn,
+.pwcd-cancel-btn {
+min-width: 44px;
+
+
+padding:
+  0 8px;
+
+font-size: 0.65rem;
+
+
+}
+
+.pwcd-edit-row {
+gap: 6px;
+}
+
+.pwcd-edit-input {
+font-size: 0.8rem;
+}
+
+.pwcd-category-edit-form {
+margin-left: 14px;
+margin-right: 14px;
+padding: 14px;
+}
+
+.pwcd-edit-category-actions {
+grid-template-columns: 1fr;
+}
+
+.pwo-shell {
+padding:
+16px
+14px
+30px;
+}
+
+.pwo-page-title {
+font-size: 1.45rem;
+}
+
+.pwo-section {
+padding:
+17px
+14px;
+
+
+border-radius: 20px;
+
+
+}
+
+.pwo-donut-row {
+flex-direction: column;
+align-items: center;
+}
+
+.pwo-legend {
+width: 100%;
+}
+
+.pwo-donut-wrap {
+width: 145px;
+height: 145px;
+}
+
+.pwo-progress-amounts {
+font-size: 0.62rem;
+}
+
+.pwo-budget-progress__amounts {
+font-size: 0.6rem;
+}
+}

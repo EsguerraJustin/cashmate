@@ -1,0 +1,303 @@
+<ion-content class="pw-page" [fullscreen]="true">
+  <div class="pwo-shell">
+
+    <!--  App bar  -->
+    <div class="pwo-appbar">
+      <button class="pwo-back" type="button" (click)="goBack()" aria-label="Back">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </button>
+      <div class="pwo-appbar__brand">
+        <div class="pw-logo" aria-hidden="true">M</div>
+        <h1>CASHMATE</h1>
+      </div>
+    </div>
+
+    <h2 class="pwo-page-title">Dashboard Overview</h2>
+    @if (greetingName) {
+      <p class="pwo-greeting">Hello, {{ greetingName }}</p>
+    }
+    <div class="pwo-period">
+      <button type="button" class="pwo-back" (click)="changePeriod(-1)" aria-label="Previous month">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+      </button>
+      <div class="pwo-period__center">
+        <p class="pwo-page-subtitle">{{ monthLabel }}</p>
+        <!-- Shown only on the current month, as a marker that you are
+             already viewing it. Hidden in every other month. -->
+        @if (isCurrentPeriod) {
+          <button type="button" class="pwo-period__now" (click)="useCurrentMonth()">
+            This month
+          </button>
+        }
+      </div>
+      <button type="button" class="pwo-back" (click)="changePeriod(1)" aria-label="Next month">
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </button>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="pwo-stats">
+      <div class="pwo-stat-card pwo-stat--budget">
+        <ion-icon name="wallet-outline" class="pwo-stat-icon"></ion-icon>
+        <p class="pwo-stat-label">{{ incomeTotal > 0 ? 'Income' : 'Total Budget' }}</p>
+        <p class="pwo-stat-value">{{ formatPHP(incomeTotal > 0 ? incomeTotal : totalBudget) }}</p>
+      </div>
+      <div class="pwo-stat-card pwo-stat--spent">
+        <ion-icon name="trending-down-outline" class="pwo-stat-icon"></ion-icon>
+        <p class="pwo-stat-label">Total Spent</p>
+        <p class="pwo-stat-value">{{ formatPHP(totalSpent) }}</p>
+      </div>
+      <div class="pwo-stat-card pwo-stat--remaining">
+        <ion-icon name="trending-up-outline" class="pwo-stat-icon"></ion-icon>
+        <p class="pwo-stat-label">Remaining</p>
+        <p class="pwo-stat-value">{{ formatPHP(cashRemaining) }}</p>
+      </div>
+    </div>
+
+    @if (dueSoon.length > 0) {
+      <section class="pwo-due">
+        <h3 class="pwo-due__title">
+          <ion-icon name="calendar-outline"></ion-icon>
+          Due this week
+        </h3>
+        @for (category of dueSoon; track category.name) {
+          <button
+            type="button"
+            class="pwo-due__item"
+            (click)="goToExpenses()"
+          >
+            <span>{{ category.name }}</span>
+            <span>{{ dueLabel(category) }}</span>
+          </button>
+        }
+      </section>
+    }
+
+    <!-- Donut Chart: Spending by Category -->
+    <section class="pwo-section">
+      <h3 class="pwo-section-title">
+        <ion-icon name="pie-chart-outline"></ion-icon>
+        Spending by Category
+      </h3>
+
+      <div class="pwo-donut-row">
+        <div class="pwo-donut-wrap">
+          <svg class="pwo-donut" viewBox="0 0 36 36">
+            @for (seg of donutSegments; track seg.color) {
+              <circle
+                class="pwo-donut__segment"
+                cx="18" cy="18" r="15.9"
+                fill="none"
+                [attr.stroke]="seg.color"
+                stroke-width="4.5"
+                attr.stroke-dasharray="{{ seg.length }} {{ 100 - seg.length }}"
+                attr.stroke-dashoffset="{{ -seg.offset }}"
+              />
+            }
+          </svg>
+          <div class="pwo-donut-center">
+            <span class="pwo-donut-pct">{{ spentPercent }}%</span>
+            <span class="pwo-donut-sub">spent</span>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="pwo-legend">
+          @for (cat of categories; track cat.name) {
+            <div class="pwo-legend-item">
+              <span class="pwo-legend-dot" [style.background]="cat.color"></span>
+              <span class="pwo-legend-name">{{ cat.name }}</span>
+              <span class="pwo-legend-pct">{{ cat.percent }}%</span>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- Category Progress Bars -->
+    <section class="pwo-section">
+      <h3 class="pwo-section-title">Category Breakdown</h3>
+
+      @for (cat of categories; track cat.name) {
+        <div class="pwo-progress-item">
+          <div class="pwo-progress-head">
+            <span class="pwo-progress-name">{{ cat.name }}</span>
+            <span class="pwo-progress-amounts">
+              {{ formatPHP(cat.spent) }} / {{ formatPHP(cat.limit) }}
+            </span>
+          </div>
+          <div class="pwo-progress-track">
+            <div
+              class="pwo-progress-fill"
+              [style.width.%]="cat.percent"
+              [style.background]="cat.color"
+              [class.pwo-progress--danger]="cat.percent >= 80"
+            ></div>
+          </div>
+          <span class="pwo-progress-pct" [class.pwo-pct--danger]="cat.percent >= 80">
+            {{ cat.percent }}%
+          </span>
+        </div>
+      }
+    </section>
+
+    <!-- Monthly Trend (Bar Chart) -->
+    <section class="pwo-section">
+      <h3 class="pwo-section-title">Monthly Spending Trend</h3>
+
+      <div class="pwo-barchart">
+        @for (bar of monthlyData; track bar.month) {
+          <div class="pwo-bar-col">
+            <div class="pwo-bar-track">
+              <div
+                class="pwo-bar-fill"
+                [style.height.%]="bar.percent"
+              ></div>
+            </div>
+            <span class="pwo-bar-label">{{ bar.month }}</span>
+            <span class="pwo-bar-amt">{{ formatPHP(bar.amount) }}</span>
+          </div>
+        }
+      </div>
+    </section>
+    
+    <!--  Savings & Allocated Budget -->
+<section class="pwo-section pwo-financial-overview">
+
+  <h3 class="pwo-section-title">
+    <ion-icon name="wallet-outline"></ion-icon>
+    Savings & Budget Progress
+  </h3>
+
+  <div class="pwo-financial-grid">
+
+    <!-- Target Savings -->
+    @for (goal of visibleGoals; track goal.id) {
+      <div class="pwo-financial-card pwo-financial-card--savings">
+
+        <div class="pwo-financial-icon">
+          <ion-icon name="cash-outline"></ion-icon>
+        </div>
+
+        <div class="pwo-financial-content">
+
+          <p class="pwo-financial-label">
+            {{ goal.name }}
+          </p>
+
+          <p class="pwo-financial-value">
+            {{ formatPHP(goal.targetAmount) }}
+          </p>
+
+          <p class="pwo-financial-description">
+            {{ goalPercent(goal) }}% from leftover cash ({{ formatPHP(cashRemaining) }})
+          </p>
+
+        </div>
+
+      </div>
+    }
+
+    @if (visibleGoals.length === 0) {
+      <div class="pwo-financial-card pwo-financial-card--savings">
+
+        <div class="pwo-financial-icon">
+          <ion-icon name="cash-outline"></ion-icon>
+        </div>
+
+        <div class="pwo-financial-content">
+
+          <p class="pwo-financial-label">
+            Target Savings
+          </p>
+
+          <p class="pwo-financial-value">
+            {{ formatPHP(0) }}
+          </p>
+
+          <p class="pwo-financial-description">
+            Add a goal from Monthly Expenses
+          </p>
+
+        </div>
+
+      </div>
+    }
+
+
+    <!-- Remaining Allocated Budget -->
+    <div class="pwo-financial-card pwo-financial-card--budget">
+
+      <div class="pwo-financial-icon">
+        <ion-icon name="pie-chart-outline"></ion-icon>
+      </div>
+
+      <div class="pwo-financial-content">
+
+        <p class="pwo-financial-label">
+          Remaining Allocated Budget
+        </p>
+
+        <p class="pwo-financial-value">
+          {{ formatPHP(totalRemaining) }}
+        </p>
+
+        <p class="pwo-financial-description">
+          {{ budgetRemainingPercent }}% of your allocated budget remains
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- Allocated Budget Progress -->
+  <div class="pwo-budget-progress">
+
+    <div class="pwo-budget-progress__head">
+
+      <span>
+        Allocated Budget Progress
+      </span>
+
+      <strong>
+        {{ budgetUsedPercent }}%
+      </strong>
+
+    </div>
+
+
+    <div class="pwo-budget-progress__track">
+
+      <div
+        class="pwo-budget-progress__fill"
+        [style.width.%]="budgetUsedPercent"
+        [class.pwo-budget-progress__fill--danger]="
+          budgetUsedPercent >= 80
+        "
+      ></div>
+
+    </div>
+
+
+    <div class="pwo-budget-progress__amounts">
+
+      <span>
+        {{ formatPHP(totalSpent) }} spent
+      </span>
+
+      <span>
+        {{ formatPHP(totalBudget) }} allocated
+      </span>
+
+    </div>
+
+  </div>
+
+</section>
+
+  </div>
+</ion-content>
+

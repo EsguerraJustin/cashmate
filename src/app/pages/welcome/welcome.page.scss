@@ -1,0 +1,10 @@
+/* Page-specific spacing only; shared styles live in global.scss */
+:host {
+  display: block;
+  height: 100%;
+}
+
+/* The panel now carries two link rows; tighten the gap between them. */
+.pw-link-row + .pw-link-row {
+  margin-top: 6px;
+}

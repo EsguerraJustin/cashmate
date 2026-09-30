@@ -1,0 +1,1569 @@
+<!-- Fixed blur+dark overlay — appears above page content, below ion-modal -->
+
+@if (anyModalOpen) {
+
+  <div class="pw-modal-overlay" aria-hidden="true"></div>
+}
+
+<ion-content class="pw-page" [fullscreen]="true">
+
+  <div class="pw-expenses-shell">
+
+
+<!-- App Bar -->
+<div class="pw-appbar">
+  <div class="pw-appbar__brand">
+    <div class="pw-logo" aria-hidden="true">M</div>
+    <h1>CASHMATE</h1>
+  </div>
+</div>
+
+<!-- Page Title -->
+<h2 class="pw-section-title">Monthly Expenses</h2>
+@if (greetingName) {
+  <p class="pw-greeting">Hello, {{ greetingName }}</p>
+}
+
+<div class="pw-period">
+  <button
+    type="button"
+    class="pw-period__nav"
+    (click)="changePeriod(-1)"
+    aria-label="Previous month"
+  >
+    <ion-icon name="chevron-back-outline"></ion-icon>
+  </button>
+
+  <div class="pw-period__center">
+    <p class="pw-section-meta pw-period__label">{{ month }}</p>
+    <!-- Shown only on the current month, as a marker that you are already
+         viewing it. Hidden in every other month. -->
+    @if (isCurrentPeriod) {
+      <button type="button" class="pw-period__now" (click)="useCurrentMonth()">
+        This month
+      </button>
+    }
+  </div>
+
+  <button
+    type="button"
+    class="pw-period__nav"
+    (click)="changePeriod(1)"
+    aria-label="Next month"
+  >
+    <ion-icon name="chevron-forward-outline"></ion-icon>
+  </button>
+</div>
+
+<button
+  type="button"
+  class="pw-roll"
+  [class.is-on]="rollLeftover"
+  (click)="toggleRollLeftover()"
+>
+  Roll leftover into this month: {{ rollLeftover ? 'On' : 'Off' }}
+</button>
+
+<!-- Cash remaining -->
+<div class="pw-cash">
+  <div>
+    <p class="pw-cash__label">Income this month</p>
+    <p class="pw-cash__value">{{ formatPHP(incomeTotal) }}</p>
+  </div>
+  <div>
+    <p class="pw-cash__label">Spent</p>
+    <p class="pw-cash__value">{{ formatPHP(totalSpent) }}</p>
+  </div>
+  <div>
+    <p class="pw-cash__label">Remaining</p>
+    <p class="pw-cash__value">{{ formatPHP(savingsAvailable) }}</p>
+  </div>
+</div>
+<p class="pw-quick__hint pw-cash-hint">
+  Unallocated to goals: {{ formatPHP(unallocated) }}
+</p>
+
+<!-- Due this week -->
+@if (dueSoon.length > 0) {
+  <section class="pw-due">
+    <h3 class="pw-due__title">Due this week</h3>
+    @for (category of dueSoon; track category.name) {
+      <button
+        type="button"
+        class="pw-due__item"
+        (click)="openCategoryDetail(category)"
+      >
+        <span>{{ category.name }}</span>
+        <span>{{ dueLabel(category) }}</span>
+      </button>
+    }
+  </section>
+}
+
+<!-- TOOLBAR: search + filters + actions + profile -->
+<section class="pw-toolbar">
+
+  <div class="pw-toolbar__search">
+    <ion-input
+      type="search"
+      fill="outline"
+      placeholder="Search categories"
+      [(ngModel)]="searchQuery"
+      class="pw-toolbar__input"
+      aria-label="Search categories"
+    ></ion-input>
+  </div>
+
+  <div class="pw-toolbar__actions">
+    <div
+      class="pw-hover-menu pw-hover-menu--inline"
+      [class.is-open]="menuOpen"
+    >
+      <button
+        type="button"
+        class="pw-hover-menu__trigger pw-hover-menu__trigger--compact"
+        aria-haspopup="true"
+        [attr.aria-expanded]="menuOpen"
+        (click)="toggleMenu($event)"
+      >
+        Actions
+
+        <ion-icon
+          name="chevron-down-outline"
+          aria-hidden="true"
+        ></ion-icon>
+      </button>
+
+      <div class="pw-hover-menu__panel" role="menu">
+
+        @for (action of actions; track action.label) {
+
+          <button
+            type="button"
+            class="pw-hover-menu__item"
+            role="menuitem"
+            (click)="onActionClick(action)"
+          >
+            {{ action.label }}
+          </button>
+
+        }
+
+      </div>
+    </div>
+
+    <div
+      class="pw-hover-menu pw-hover-menu--inline"
+      [class.is-open]="profileMenuOpen"
+    >
+      <button
+        type="button"
+        class="pw-toolbar__avatar"
+        aria-haspopup="true"
+        [attr.aria-expanded]="profileMenuOpen"
+        aria-label="Account"
+        (click)="toggleProfileMenu($event)"
+      >
+        {{ (greetingName || '?').charAt(0).toUpperCase() }}
+      </button>
+
+      <div
+        class="pw-hover-menu__panel pw-hover-menu__panel--right"
+        role="menu"
+      >
+
+        @for (action of profileActions; track action.label) {
+
+          <button
+            type="button"
+            class="pw-hover-menu__item"
+            role="menuitem"
+            (click)="onProfileActionClick(action)"
+          >
+            {{ action.label }}
+          </button>
+
+        }
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TONE FILTERS -->
+@if (hasCategories) {
+  <div
+    class="pw-filters"
+    role="group"
+    aria-label="Filter categories by card colour"
+  >
+    @for (filter of toneFilters; track filter.tone) {
+      <button
+        type="button"
+        class="pw-filters__chip"
+        [class.is-selected]="
+          filter.tone === 'all'
+            ? activeTone === null
+            : activeTone === filter.tone
+        "
+        [attr.aria-pressed]="
+          filter.tone === 'all'
+            ? activeTone === null
+            : activeTone === filter.tone
+        "
+        (click)="setToneFilter(filter.tone)"
+      >
+        {{ filter.label }}
+      </button>
+    }
+  </div>
+}
+
+<!-- Savings Goals -->
+@for (goal of visibleGoals; track goal.id) {
+
+  <article class="pw-card pw-card--goal">
+
+    <div
+      class="pw-card__media"
+      aria-label="Savings goal"
+    >
+      <ion-icon name="image-outline"></ion-icon>
+    </div>
+
+    <div class="pw-card__body">
+
+      <h3 class="pw-card__name">
+        {{ goal.name }}
+      </h3>
+
+      <p class="pw-card__limit">
+        SAVED: {{ formatPHP(goal.savedAmount || 0) }} /
+        {{ formatPHP(goal.targetAmount) }}
+      </p>
+
+      <p class="pw-card__limit">
+        {{ goalPercent(goal) }}% of this goal
+      </p>
+
+      @if (goal.id !== 'legacy') {
+        <div class="pw-goal-add" (click)="$event.stopPropagation()">
+          <ion-input
+            type="text"
+            inputmode="decimal"
+            fill="outline"
+            placeholder="ADD FROM LEFTOVER"
+            [(ngModel)]="goalDeposits[goal.id]"
+            class="pwcd-add-input"
+            (keydown.enter)="contributeToGoal(goal)"
+          ></ion-input>
+          <button
+            class="pwcd-add-btn"
+            type="button"
+            (click)="contributeToGoal(goal)"
+            aria-label="Add to this goal"
+          >
+            +
+          </button>
+        </div>
+      }
+
+    </div>
+
+    @if (goal.id !== 'legacy') {
+      <button
+        type="button"
+        class="pw-card__remove"
+        (click)="$event.stopPropagation(); removeGoal(goal)"
+        aria-label="Remove goal"
+      >
+        ×
+      </button>
+    }
+
+  </article>
+
+}
+
+<!-- Expense Category Cards -->
+@for (category of visibleCategories; track category.name) {
+
+  <article
+    class="pw-card pw-card--{{ category.tone }} pw-card--clickable"
+    role="button"
+    tabindex="0"
+    [attr.aria-label]="'View details for ' + category.name"
+    (click)="openCategoryDetail(category)"
+    (keydown.enter)="openCategoryDetail(category)"
+    (keydown.space)="openCategoryDetail(category)"
+  >
+
+    <div
+      class="pw-card__media"
+      aria-hidden="true"
+    >
+      <ion-icon name="image-outline"></ion-icon>
+    </div>
+
+    <div class="pw-card__body">
+
+      <h3 class="pw-card__name">
+        {{ category.name }}
+      </h3>
+
+      <p class="pw-card__limit">
+        {{ formatPHP(spentOf(category)) }} /
+        {{ formatPHP(limitOf(category)) }}
+      </p>
+
+      @if (dueLabel(category)) {
+        <p class="pw-card__limit">Due {{ dueLabel(category) }}</p>
+      }
+
+    </div>
+
+    @if (budgetStatus(category) === 'warn') {
+      <span class="pw-badge pw-badge--warn">80%</span>
+    }
+    @if (budgetStatus(category) === 'over') {
+      <span class="pw-badge pw-badge--over">Limit</span>
+    }
+
+    <div
+      class="pw-card__chevron"
+      aria-hidden="true"
+    >
+      ›
+    </div>
+
+  </article>
+
+}
+@empty {
+
+  <div class="pw-panel pw-dash-empty">
+
+    @if (hasActiveFilters) {
+
+      <h2 class="pw-panel__heading">No matches</h2>
+      <p class="pw-dash-empty__hint">
+        @if (searchQuery.trim() && activeTone) {
+          Nothing matches “{{ searchQuery.trim() }}” in that colour.
+        } @else if (searchQuery.trim()) {
+          Nothing matches “{{ searchQuery.trim() }}”.
+        } @else {
+          No categories in that colour yet.
+        }
+      </p>
+      <ion-button
+        class="pw-btn"
+        expand="block"
+        (click)="clearFilters()"
+      >
+        Clear filters
+      </ion-button>
+
+    } @else {
+
+      @if (hasAnyCategories) {
+
+        <h2 class="pw-panel__heading">
+          Set up {{ month }}
+        </h2>
+        <p class="pw-dash-empty__hint">
+          You have no categories for this month. Start fresh, or copy last
+          month's categories and limits as a starting point.
+        </p>
+        <ion-button
+          class="pw-btn"
+          expand="block"
+          (click)="copyPreviousMonthCategories()"
+        >
+          Copy from previous month
+        </ion-button>
+        <ion-button
+          class="pw-btn pwm-btn--ghost"
+          expand="block"
+          fill="outline"
+          (click)="openAddCategory()"
+        >
+          Add categories from scratch
+        </ion-button>
+
+      } @else {
+
+        <h2 class="pw-panel__heading">No categories yet</h2>
+        <p class="pw-dash-empty__hint">
+          Add your first expense category to start tracking your monthly
+          budget. Every category is yours, with its own limit.
+        </p>
+        <ion-button
+          class="pw-btn"
+          expand="block"
+          (click)="openAddCategory()"
+        >
+          Add Category
+        </ion-button>
+
+      }
+
+    }
+
+  </div>
+
+}
+
+
+  </div>
+</ion-content>
+
+<!-- CATEGORY DETAIL MODAL  -->
+
+<ion-modal
+[isOpen]="categoryDetailOpen"
+(didDismiss)="closeCategoryDetail()"
+class="pw-modal pw-modal--detail"
+
+>
+
+  <ng-template>
+
+
+@if (selectedCategory) {
+
+  <div
+    class="pwcd-sheet pwcd-sheet--{{ selectedCategory.tone }}"
+  >
+
+    <!-- CATEGORY HEADER  -->
+
+    @if (!editingCategory) {
+
+      <!-- NORMAL HEADER -->
+      <div class="pwcd-header">
+
+        <div>
+
+          <h2 class="pwcd-title">
+            {{ selectedCategory.name | uppercase }}
+          </h2>
+
+          <p class="pwcd-subtitle">
+            AMOUNT LIMIT:
+            {{ formatPHP(limitOf(selectedCategory)) }}
+          </p>
+
+        </div>
+
+        <div class="pwcd-header-actions">
+
+          <button
+            class="pwcd-category-edit-btn"
+            type="button"
+            (click)="editCategory()"
+          >
+            Edit
+          </button>
+
+          <button
+            class="pwcd-category-delete-btn"
+            type="button"
+            (click)="deleteCategory()"
+          >
+            Delete
+          </button>
+
+          <button
+            class="pwm-close"
+            type="button"
+            (click)="closeCategoryDetail()"
+            aria-label="Close"
+          >
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+
+        </div>
+
+      </div>
+
+    } @else {
+
+      <!-- EDIT HEADER -->
+      <div class="pwcd-header">
+
+        <div>
+
+          <h2 class="pwcd-title">
+            EDIT CATEGORY
+          </h2>
+
+          <p class="pwcd-subtitle">
+            Modify your category details
+          </p>
+
+        </div>
+
+        <button
+          class="pwm-close"
+          type="button"
+          (click)="cancelEditCategory()"
+          aria-label="Cancel editing"
+        >
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+
+      </div>
+
+    }
+
+
+    <!-- EDIT CATEGORY -->
+
+    @if (editingCategory) {
+
+      <div class="pwcd-category-edit-form">
+
+        <!-- Category Title -->
+        <div class="pwcd-edit-field">
+
+          <ion-input
+            type="text"
+            fill="outline"
+            label="Category Title:"
+            labelPlacement="stacked"
+            placeholder="e.g. Groceries"
+            [(ngModel)]="editCategoryName"
+            class="pwcd-edit-category-input"
+          ></ion-input>
+
+        </div>
+
+
+        <!-- Allocated Budget -->
+        <div class="pwcd-edit-field">
+
+          <ion-input
+            type="text"
+            inputmode="decimal"
+            fill="outline"
+            label="Allocated Budget:"
+            labelPlacement="stacked"
+            placeholder="e.g. 5,000.00"
+            [(ngModel)]="editCategoryLimit"
+            class="pwcd-edit-category-input"
+          ></ion-input>
+
+        </div>
+
+        <div class="pwcd-edit-field">
+
+          <ion-input
+            type="date"
+            fill="outline"
+            label="Due date (optional):"
+            labelPlacement="stacked"
+            [(ngModel)]="editCategoryDueDate"
+            class="pwcd-edit-category-input"
+          ></ion-input>
+
+        </div>
+
+
+        <!-- Card Color -->
+        <div class="pwcd-edit-field">
+
+          <p class="pwcd-edit-color-label">
+            Customize Card Color:
+          </p>
+
+          <div
+            class="pwm-swatches"
+            role="radiogroup"
+            aria-label="Card color"
+          >
+
+            @for (c of cardColors; track c.tone) {
+
+              <button
+                type="button"
+                class="pwm-swatch"
+                [class.is-selected]="
+                  editCategoryColor === c.tone
+                "
+                [style.background]="c.hex"
+                [attr.aria-label]="c.tone"
+                [attr.aria-checked]="
+                  editCategoryColor === c.tone
+                "
+                role="radio"
+                (click)="editCategoryColor = c.tone"
+              ></button>
+
+            }
+
+          </div>
+
+        </div>
+
+
+        <!-- Current Spending Information -->
+        <div class="pwcd-edit-info">
+
+          <span>
+            Current Amount Spent
+          </span>
+
+          <strong>
+            {{ formatPHP(spentOf(selectedCategory)) }}
+          </strong>
+
+        </div>
+
+
+        <!-- Edit Actions -->
+        <div class="pwcd-edit-category-actions">
+
+          <button
+            type="button"
+            class="pwcd-save-category-btn"
+            (click)="saveEditedCategory()"
+          >
+            Save Changes
+          </button>
+
+          <button
+            type="button"
+            class="pwcd-cancel-category-btn"
+            (click)="cancelEditCategory()"
+          >
+            Cancel
+          </button>
+
+        </div>
+
+      </div>
+
+
+    } @else {
+
+      <!-- ADD EXPENSE  -->
+
+      <div class="pwcd-add-row">
+
+        <ion-input
+          id="detail-add-amount"
+          type="text"
+          inputmode="decimal"
+          fill="outline"
+          placeholder="ADD AMOUNT HERE"
+          [value]="addAmountInput"
+          (ionInput)="
+            addAmountInput =
+              $event.detail.value ?? ''
+          "
+          class="pwcd-add-input"
+          (keydown.enter)="submitAmount()"
+        ></ion-input>
+
+        <button
+          class="pwcd-add-btn"
+          type="button"
+          (click)="submitAmount()"
+          aria-label="Add amount"
+        >
+          +
+        </button>
+
+      </div>
+
+      <div class="pwcd-add-row">
+
+        <ion-input
+          type="text"
+          fill="outline"
+          placeholder="NOTE — GRAB / MERALCO / GROCERIES"
+          [(ngModel)]="addNoteInput"
+          class="pwcd-add-input"
+          (keydown.enter)="submitAmount()"
+        ></ion-input>
+
+      </div>
+
+
+      <!-- STATS -->
+
+      <div class="pwcd-stats">
+
+        <p class="pwcd-stat-label">
+          Total Amount Spent:
+        </p>
+
+        <div class="pwcd-pill">
+          {{ formatPHP(spentOf(selectedCategory)) }}
+        </div>
+
+
+        <p class="pwcd-stat-label">
+          Remaining Amount Limit:
+        </p>
+
+        <div
+          class="pwcd-pill"
+          [class.pwcd-pill--low]="isNearLimit"
+        >
+          {{ formatPHP(selectedRemaining) }}
+        </div>
+
+      </div>
+
+
+      <!-- Warning -->
+      @if (isNearLimit) {
+
+        <div
+          class="pwcd-warning"
+          role="alert"
+        >
+
+          <ion-icon
+            name="warning-outline"
+            aria-hidden="true"
+          ></ion-icon>
+
+          WARNING! NEAR AMOUNT LIMIT
+
+        </div>
+
+      }
+
+
+      <!-- EXPENSE HISTORY -->
+
+      <div class="pwcd-history">
+
+        <h3 class="pwcd-history-title">
+          Expense History
+        </h3>
+
+
+        @if (periodExpenses(selectedCategory).length === 0) {
+
+          <p class="pwcd-history-empty">
+            No expenses added yet this month.
+          </p>
+
+        } @else {
+
+          <div class="pwcd-history-list">
+
+            @for (
+              expense of periodExpenses(selectedCategory);
+              track expense.id
+            ) {
+
+              <div class="pwcd-history-item">
+
+                <!--  EXPENSE EDIT MODE  -->
+
+                @if (editingExpenseId === expense.id) {
+
+                  <div class="pwcd-edit-row">
+
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      fill="outline"
+                      placeholder="Enter amount"
+                      [value]="editExpenseInput"
+                      (ionInput)="
+                        editExpenseInput =
+                          $event.detail.value ?? ''
+                      "
+                      (keydown.enter)="
+                        saveEditedExpense(expense)
+                      "
+                      class="pwcd-edit-input"
+                    ></ion-input>
+
+                    <ion-input
+                      type="text"
+                      fill="outline"
+                      placeholder="Note"
+                      [(ngModel)]="editExpenseNote"
+                      class="pwcd-edit-input"
+                    ></ion-input>
+
+
+                    <div class="pwcd-history-actions">
+
+                      <button
+                        type="button"
+                        class="pwcd-save-btn"
+                        (click)="
+                          saveEditedExpense(expense)
+                        "
+                      >
+                        Save
+                      </button>
+
+                      <button
+                        type="button"
+                        class="pwcd-cancel-btn"
+                        (click)="
+                          cancelEditExpense()
+                        "
+                      >
+                        Cancel
+                      </button>
+
+                    </div>
+
+                  </div>
+
+
+                } @else {
+
+                  <!-- NORMAL EXPENSE -->
+
+                  <div class="pwcd-history-info">
+
+                    <strong>
+                      {{ formatPHP(expense.amount) }}
+                    </strong>
+
+                    <small>
+                      {{ formatExpenseDate(expense.date) }}
+                    </small>
+
+                    @if (expense.note) {
+                      <small>{{ expense.note }}</small>
+                    }
+
+                  </div>
+
+
+                  <div class="pwcd-history-actions">
+
+                    <button
+                      type="button"
+                      class="pwcd-edit-btn"
+                      (click)="
+                        editExpense(expense)
+                      "
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      type="button"
+                      class="pwcd-delete-btn"
+                      (click)="
+                        deleteExpense(expense)
+                      "
+                    >
+                      Delete
+                    </button>
+
+                  </div>
+
+                }
+
+              </div>
+
+            }
+
+          </div>
+
+        }
+
+      </div>
+
+    }
+
+  </div>
+
+}
+
+
+  </ng-template>
+</ion-modal>
+
+<!-- ADD NEW EXPENSE CATEGORY MODAL -->
+
+<ion-modal
+[isOpen]="addCategoryOpen"
+(didDismiss)="closeAddCategory()"
+[breakpoints]="[0, 1]"
+[initialBreakpoint]="1"
+class="pw-modal pw-modal--category"
+
+>
+
+  <ng-template>
+
+
+<div class="pwm-sheet">
+
+  <div class="pwm-header">
+
+    <h2 class="pwm-title">
+      Add new Expense Category
+    </h2>
+
+    <button
+      class="pwm-close"
+      type="button"
+      (click)="closeAddCategory()"
+      aria-label="Close"
+    >
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+
+  </div>
+
+
+  <div class="pwm-body">
+
+    @if (unusedExpensePresets.length > 0) {
+      <p class="pwm-swatch-label">Spending categories</p>
+      <div class="pwm-chips" role="group" aria-label="Spending categories">
+        @for (item of unusedExpensePresets; track item.name) {
+          <button
+            type="button"
+            class="pwm-chip"
+            [class.is-selected]="isExpensePresetActive(item.name)"
+            (click)="applyExpensePreset(item.name, item.tone)"
+          >
+            {{ item.name }}
+          </button>
+        }
+      </div>
+    }
+
+    @if (unusedBillPresets.length > 0) {
+      <p class="pwm-swatch-label">Bill categories</p>
+      <div class="pwm-chips" role="group" aria-label="Bill categories">
+        @for (name of unusedBillPresets; track name) {
+          <button
+            type="button"
+            class="pwm-chip"
+            [class.is-selected]="isBillPresetActive(name)"
+            (click)="applyBillPreset(name)"
+          >
+            {{ name }}
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Category Title -->
+    <div class="pwm-field">
+
+      <ion-input
+        id="cat-title"
+        type="text"
+        fill="outline"
+        label="Title:"
+        labelPlacement="stacked"
+        [placeholder]="newCategory.color === 'bills' ? 'e.g. Rent / Meralco / Globe' : 'e.g. Groceries'"
+        [(ngModel)]="newCategory.title"
+        class="pwm-input"
+      ></ion-input>
+
+    </div>
+
+
+    <!-- Amount Limit -->
+    <div class="pwm-field">
+
+      <ion-input
+        id="cat-limit"
+        type="text"
+        inputmode="decimal"
+        fill="outline"
+        label="Amount Limit:"
+        labelPlacement="stacked"
+        placeholder="e.g. 5,000.00"
+        [(ngModel)]="newCategory.amountLimit"
+        class="pwm-input"
+      ></ion-input>
+
+    </div>
+
+
+    <!-- Card Colors -->
+    <p class="pwm-swatch-label">
+      Customize your cards:
+    </p>
+
+    <div
+      class="pwm-swatches"
+      role="radiogroup"
+      aria-label="Card color"
+    >
+
+      @for (c of cardColors; track c.tone) {
+
+        <button
+          type="button"
+          class="pwm-swatch-wrap"
+          [class.is-selected]="
+            newCategory.color === c.tone
+          "
+          [attr.aria-label]="c.label"
+          [attr.aria-checked]="
+            newCategory.color === c.tone
+          "
+          role="radio"
+          (click)="
+            newCategory.color = c.tone
+          "
+        >
+          <span
+            class="pwm-swatch"
+            [class.is-selected]="newCategory.color === c.tone"
+            [style.background]="c.hex"
+          ></span>
+          <span class="pwm-swatch-name">{{ c.label }}</span>
+        </button>
+
+      }
+
+    </div>
+
+
+    <!-- Actions -->
+    <div class="pwm-actions">
+
+      <ion-button
+        class="pwm-btn"
+        expand="block"
+        (click)="submitCategory()"
+      >
+        Add Category
+      </ion-button>
+
+      <ion-button
+        class="pwm-btn pwm-btn--ghost"
+        expand="block"
+        fill="outline"
+        (click)="closeAddCategory()"
+      >
+        Cancel
+      </ion-button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+  </ng-template>
+</ion-modal>
+
+<!-- ADD TARGET SAVINGS MODAL -->
+
+<ion-modal
+[isOpen]="addSavingsOpen"
+(didDismiss)="closeAddSavings()"
+[breakpoints]="[0, 1]"
+[initialBreakpoint]="1"
+class="pw-modal pw-modal--savings"
+
+>
+
+  <ng-template>
+
+
+<div class="pwm-sheet">
+
+  <div class="pwm-header">
+
+    <h2 class="pwm-title">
+      Add Target Savings
+    </h2>
+
+    <button
+      class="pwm-close"
+      type="button"
+      (click)="closeAddSavings()"
+      aria-label="Close"
+    >
+      <ion-icon name="close-outline"></ion-icon>
+  </button>
+
+  </div>
+
+
+  <div class="pwm-body">
+
+    <div class="pwm-field">
+
+      <ion-input
+        type="text"
+        fill="outline"
+        label="Goal name:"
+        labelPlacement="stacked"
+        placeholder="e.g. Emergency / Vacation / Gadget"
+        [(ngModel)]="newSavings.title"
+        class="pwm-input"
+      ></ion-input>
+
+    </div>
+
+    <!-- Savings Amount -->
+    <div class="pwm-field">
+
+      <ion-input
+        id="sav-amount"
+        type="text"
+        inputmode="decimal"
+        fill="outline"
+        label="Target Amount:"
+        labelPlacement="stacked"
+        placeholder="e.g. 50,000.00"
+        [(ngModel)]="newSavings.targetAmount"
+        class="pwm-input"
+      ></ion-input>
+
+    </div>
+
+    <div class="pwm-field">
+
+      <ion-input
+        type="text"
+        inputmode="decimal"
+        fill="outline"
+        label="Already saved (optional):"
+        labelPlacement="stacked"
+        placeholder="e.g. 5,000.00"
+        [(ngModel)]="newSavings.savedAmount"
+        class="pwm-input"
+      ></ion-input>
+
+    </div>
+
+
+    <!-- Actions -->
+    <div class="pwm-actions">
+
+      <ion-button
+        class="pwm-btn"
+        expand="block"
+        (click)="submitSavings()"
+      >
+        Save Goal
+      </ion-button>
+
+      <ion-button
+        class="pwm-btn pwm-btn--ghost"
+        expand="block"
+        fill="outline"
+        (click)="closeAddSavings()"
+      >
+        Cancel
+      </ion-button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+  </ng-template>
+</ion-modal>
+
+<!-- ADD INCOME MODAL -->
+
+<ion-modal
+[isOpen]="addIncomeOpen"
+(didDismiss)="closeAddIncome()"
+[breakpoints]="[0, 1]"
+[initialBreakpoint]="1"
+class="pw-modal pw-modal--category"
+>
+
+  <ng-template>
+
+<div class="pwm-sheet">
+
+  <div class="pwm-header">
+
+    <h2 class="pwm-title">
+      Add Income
+    </h2>
+
+    <button
+      class="pwm-close"
+      type="button"
+      (click)="closeAddIncome()"
+      aria-label="Close"
+    >
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+
+  </div>
+
+  <div class="pwm-body">
+
+    @for (source of periodIncomes; track source.id) {
+      <div class="pw-list-row">
+        <span>{{ source.name }} · {{ formatPHP(source.amount) }}</span>
+        <button type="button" class="pwcd-delete-btn" (click)="removeIncome(source.id)">
+          Remove
+        </button>
+      </div>
+    }
+
+    <div class="pwm-field">
+      <ion-input
+        type="text"
+        fill="outline"
+        label="Source:"
+        labelPlacement="stacked"
+        placeholder="e.g. Salary / Freelance"
+        [(ngModel)]="newIncome.name"
+        class="pwm-input"
+      ></ion-input>
+    </div>
+
+    <div class="pwm-field">
+      <ion-input
+        type="text"
+        inputmode="decimal"
+        fill="outline"
+        label="Amount:"
+        labelPlacement="stacked"
+        placeholder="e.g. 25,000.00"
+        [(ngModel)]="newIncome.amount"
+        class="pwm-input"
+      ></ion-input>
+    </div>
+
+    <div class="pwm-actions">
+      <ion-button class="pwm-btn" expand="block" (click)="submitIncome()">
+        Save Income
+      </ion-button>
+      <ion-button
+        class="pwm-btn pwm-btn--ghost"
+        expand="block"
+        fill="outline"
+        (click)="closeAddIncome()"
+      >
+        Cancel
+      </ion-button>
+    </div>
+
+  </div>
+
+</div>
+
+  </ng-template>
+</ion-modal>
+
+<!-- DISPLAY NAME MODAL -->
+
+<ion-modal
+[isOpen]="profileOpen"
+(didDismiss)="closeEditProfile()"
+[breakpoints]="[0, 1]"
+[initialBreakpoint]="1"
+class="pw-modal pw-modal--category"
+>
+
+  <ng-template>
+
+<div class="pwm-sheet">
+
+  <div class="pwm-header">
+
+    <h2 class="pwm-title">
+      Display name
+    </h2>
+
+    <button
+      class="pwm-close"
+      type="button"
+      (click)="closeEditProfile()"
+      aria-label="Close"
+    >
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+
+  </div>
+
+  <div class="pwm-body">
+
+    <div class="pwm-field">
+      <ion-input
+        type="text"
+        fill="outline"
+        label="Name:"
+        labelPlacement="stacked"
+        placeholder="e.g. Maria"
+        [(ngModel)]="editDisplayName"
+        class="pwm-input"
+      ></ion-input>
+    </div>
+
+    <div class="pwm-actions">
+      <ion-button class="pwm-btn" expand="block" (click)="submitDisplayName()">
+        Save name
+      </ion-button>
+      <ion-button
+        class="pwm-btn pwm-btn--ghost"
+        expand="block"
+        fill="outline"
+        (click)="closeEditProfile()"
+      >
+        Cancel
+      </ion-button>
+    </div>
+
+  </div>
+
+</div>
+
+  </ng-template>
+</ion-modal>
+
+<!-- RECURRING EXPENSE MODAL -->
+
+<ion-modal
+[isOpen]="addRecurringOpen"
+(didDismiss)="closeAddRecurring()"
+[breakpoints]="[0, 1]"
+[initialBreakpoint]="1"
+class="pw-modal pw-modal--category"
+>
+
+  <ng-template>
+
+<div class="pwm-sheet">
+
+  <div class="pwm-header">
+
+    <h2 class="pwm-title">
+      Recurring Expense
+    </h2>
+
+    <button
+      class="pwm-close"
+      type="button"
+      (click)="closeAddRecurring()"
+      aria-label="Close"
+    >
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+
+  </div>
+
+  <div class="pwm-body">
+
+    @for (item of settings.recurring; track item.id) {
+      <div class="pw-list-row">
+        <span>
+          {{ item.note || item.categoryName }} ·
+          {{ formatPHP(item.amount) }} · {{ recurringLabel(item) }}
+        </span>
+        <button type="button" class="pwcd-delete-btn" (click)="removeRecurring(item.id)">
+          Remove
+        </button>
+      </div>
+    }
+
+    <div class="pwm-field">
+      <label class="pwm-swatch-label" for="recurring-category">Category</label>
+      <div class="pw-select-wrap">
+        <ion-select
+          id="recurring-category"
+          class="pw-select"
+          interface="popover"
+          [interfaceOptions]="{ cssClass: 'pw-select-popover' }"
+          placeholder="Category"
+          [(ngModel)]="newRecurring.categoryName"
+        >
+          @for (category of categories; track category.name) {
+            <ion-select-option [value]="category.name">
+              {{ category.name }}
+            </ion-select-option>
+          }
+        </ion-select>
+      </div>
+    </div>
+
+    <div class="pwm-field">
+      <ion-input
+        type="text"
+        inputmode="decimal"
+        fill="outline"
+        label="Amount:"
+        labelPlacement="stacked"
+        placeholder="e.g. 8,000.00"
+        [(ngModel)]="newRecurring.amount"
+        class="pwm-input"
+      ></ion-input>
+    </div>
+
+    <div class="pwm-field">
+      <ion-input
+        type="text"
+        fill="outline"
+        label="Note:"
+        labelPlacement="stacked"
+        placeholder="e.g. Rent / Load / Netflix"
+        [(ngModel)]="newRecurring.note"
+        class="pwm-input"
+      ></ion-input>
+    </div>
+
+    <div class="pwm-field">
+      <label class="pwm-swatch-label" for="recurring-frequency">Schedule</label>
+      <div class="pw-select-wrap">
+        <ion-select
+          id="recurring-frequency"
+          class="pw-select"
+          interface="popover"
+          [interfaceOptions]="{ cssClass: 'pw-select-popover' }"
+          [(ngModel)]="newRecurring.frequency"
+        >
+          <ion-select-option value="monthly">Monthly</ion-select-option>
+          <ion-select-option value="weekly">Weekly</ion-select-option>
+        </ion-select>
+      </div>
+    </div>
+
+    @if (newRecurring.frequency === 'weekly') {
+      <div class="pwm-field">
+        <label class="pwm-swatch-label" for="recurring-weekday">Day of week</label>
+        <div class="pw-select-wrap">
+          <ion-select
+            id="recurring-weekday"
+            class="pw-select"
+            interface="popover"
+            [interfaceOptions]="{ cssClass: 'pw-select-popover' }"
+            [(ngModel)]="newRecurring.dayOfWeek"
+          >
+            @for (day of weekdayOptions; track day.value) {
+              <ion-select-option [value]="day.value">{{ day.label }}</ion-select-option>
+            }
+          </ion-select>
+        </div>
+      </div>
+    } @else {
+      <div class="pwm-field">
+        <ion-input
+          type="text"
+          inputmode="numeric"
+          fill="outline"
+          label="Day of month:"
+          labelPlacement="stacked"
+          placeholder="1"
+          [(ngModel)]="newRecurring.dayOfMonth"
+          class="pwm-input"
+        ></ion-input>
+      </div>
+    }
+
+    <div class="pwm-actions">
+      <ion-button class="pwm-btn" expand="block" (click)="submitRecurring()">
+        Save Recurring
+      </ion-button>
+      <ion-button
+        class="pwm-btn pwm-btn--ghost"
+        expand="block"
+        fill="outline"
+        (click)="closeAddRecurring()"
+      >
+        Cancel
+      </ion-button>
+    </div>
+
+  </div>
+
+</div>
+
+  </ng-template>
+</ion-modal>
+
+<!-- VIEW SUMMARY MODAL -->
+
+<ion-modal
+[isOpen]="summaryOpen"
+(didDismiss)="closeSummary()"
+class="pw-modal pw-modal--summary"
+
+>
+
+  <ng-template>
+
+
+<div class="pwsum-sheet">
+
+  <!-- Close -->
+  <button
+    class="pwm-close pwsum-close"
+    type="button"
+    (click)="closeSummary()"
+    aria-label="Close summary"
+  >
+    <ion-icon name="close-outline"></ion-icon>
+  </button>
+
+
+  <!-- Title -->
+  <h2 class="pwsum-title">
+    Monthly<br />
+    Transactions
+  </h2>
+
+
+  <!-- Stats -->
+  <div class="pwsum-body">
+
+    <p class="pwsum-label">
+      Income:
+    </p>
+
+    <div class="pwsum-pill">
+      {{ formatPHP(incomeTotal) }}
+    </div>
+
+    <p class="pwsum-label">
+      Total Amount Spent:
+    </p>
+
+    <div class="pwsum-pill">
+      {{ formatPHP(totalSpent) }}
+    </div>
+
+
+    <p class="pwsum-label">
+      Remaining Amount Limit:
+    </p>
+
+    <div class="pwsum-pill">
+      {{ formatPHP(totalRemaining) }}
+    </div>
+
+
+    <div class="pwsum-divider"></div>
+
+
+    <p class="pwsum-label">
+      How much is saved?
+    </p>
+
+    <div class="pwsum-pill pwsum-pill--savings">
+      {{ formatPHP(savingsAvailable) }}
+    </div>
+
+  </div>
+
+</div>
+
+
+  </ng-template>
+</ion-modal>

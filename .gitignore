@@ -1,0 +1,53 @@
+# Build output
+/www
+/dist
+/out-tsc
+/bazel-out
+
+# Dependencies
+/node_modules
+
+# Caches
+/.angular
+/.ionic
+/.sass-cache/
+/.nx
+/coverage
+/tmp
+/.tmp
+*.tmp
+*.tmp.*
+
+# Logs
+*.log
+log.txt
+npm-debug.log
+yarn-error.log
+testem.log
+
+# Firebase service account keys — never commit these
+*-firebase-adminsdk-*.json
+*service-account*.json
+*service_account*.json
+scripts/*.key.json
+
+# Env overrides (keep the committed environment.ts / environment.prod.ts)
+/.env
+.env.local
+.env.*.local
+
+# Editors
+/.idea/
+*.sw[mnpcod]
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# OS
+.DS_Store
+Thumbs.db
+$RECYCLE.BIN/
+*~

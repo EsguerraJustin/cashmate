@@ -1,0 +1,57 @@
+<ion-content class="pw-page" [fullscreen]="true">
+  <div class="pw-shell">
+      <header class="pw-brand">
+  <img
+    src="assets/logo (2).png"
+    alt="CashMate Logo"
+    class="pw-brand__logo"
+  />
+
+  <h1 class="pw-brand__title">Welcome to<br />CashMate</h1>
+  <p class="pw-brand__tagline">Your awesome financial partner</p>
+</header>
+     
+
+    <section class="pw-panel">
+      <h2 class="pw-panel__heading">Login to your account</h2>
+
+      <div class="pw-field">
+        <label for="username">Email</label>
+        <ion-input
+          id="username"
+          type="email"
+          inputmode="email"
+          fill="solid"
+          [(ngModel)]="username"
+          placeholder="Enter your email"
+          autocomplete="username"
+        ></ion-input>
+      </div>
+
+      <div class="pw-field">
+        <label for="password">Password</label>
+        <ion-input
+          id="password"
+          type="password"
+          fill="solid"
+          [(ngModel)]="password"
+          placeholder="Enter password"
+          autocomplete="current-password"
+        ></ion-input>
+      </div>
+
+      <ion-button class="pw-btn" expand="block" (click)="login()">
+        Log In
+      </ion-button>
+
+      <p class="pw-link-row">
+        <a routerLink="/forgot-password">Forgot password?</a>
+      </p>
+
+      <p class="pw-link-row">
+        Don’t have account?
+        <a routerLink="/auth">Sign Up</a>
+      </p>
+    </section>
+  </div>
+</ion-content>
